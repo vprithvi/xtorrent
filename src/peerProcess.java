@@ -87,7 +87,10 @@ public class peerProcess extends Thread {
 	public void run() {
 		while(true) {
 			try{
-				;
+		for(int x=0;x<myPeerInfo.size();x++) {
+			
+				Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+				new Client(socket);}
 			}catch(Exception e){
 				
 			}
@@ -168,11 +171,12 @@ class Client {
 	      ObjectOutputStream oos = null;
 	      ObjectInputStream ois = null;
 	      Socket socket = null;
-	   public Client(){
+	   public Client(Socket toConnect){
 		      String temp = new String ();
 		      try {
 		        // open a socket connection
-		        socket = new Socket("localhost", 3000);
+//		        socket = new Socket("localhost", 3000);
+		    	  socket = toConnect;
 //		        socket.bind(new InetSocketAddress("localhost",3005));
 		        // open I/O streams for objects
 		        oos = new ObjectOutputStream(socket.getOutputStream());
