@@ -50,7 +50,7 @@ public class StartRemotePeers {
 			myStart.getConfiguration();
 					
 			// get current path
-			String path = System.getProperty("xtorrent");
+			String path = System.getProperty("user.dir");
 			
 			// start clients at remote hosts
 			for (int i = 0; i < myStart.peerInfoVector.size(); i++) {
@@ -61,6 +61,7 @@ public class StartRemotePeers {
 				// *********************** IMPORTANT *************************** //
 				// If your program is JAVA, use this line.
 				Runtime.getRuntime().exec("ssh " + pInfo.peerAddress + " cd " + path + "; java peerProcess " + pInfo.peerId);
+				System.out.println("ssh " + pInfo.peerAddress + " cd " + path + "; java peerProcess " + pInfo.peerId);
 							}		
 			System.out.println("Starting all remote peers has done." );
 
