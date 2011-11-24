@@ -216,6 +216,7 @@ class Client extends Thread{
 	}
 	public Client(Socket toConnect){
 		socket = toConnect;
+		peerProcess.logger.println("in Client code");
 		this.start();
 	}
 
