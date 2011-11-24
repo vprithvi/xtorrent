@@ -79,13 +79,18 @@ public class peerProcess extends Thread {
 	//Constructor
 	public peerProcess() throws Exception {
 		server = new ServerSocket(myPort);
-		System.out.println("Server listening on port " + myPort);
+		System.out.println(myID+": Server listening on port " + myPort);
 		this.start();
 	}
 
 	//Overriding run method
 	public void run() {
 		while(true) {
+			try{
+				;
+			}catch(Exception e){
+				
+			}
 			try {
 				System.out.println("Waiting for connections.");
 				Socket client = server.accept();
@@ -148,4 +153,30 @@ class Connect extends Thread {
 	}	
 
 }
+
+class Client {
+	      ObjectOutputStream oos = null;
+	      ObjectInputStream ois = null;
+	      Socket socket = null;
+	   public Client(){
+		      String temp = new String ();
+		      try {
+		        // open a socket connection
+		        socket = new Socket("localhost", 3000);
+//		        socket.bind(new InetSocketAddress("localhost",3005));
+		        // open I/O streams for objects
+		        oos = new ObjectOutputStream(socket.getOutputStream());
+		        ois = new ObjectInputStream(socket.getInputStream());
+		        // read an object from the server
+		        temp = (String) ois.readObject();
+		        System.out.print("Got: " + temp);
+		        oos.close();
+		        ois.close();
+		      } catch(Exception e) {
+		        System.out.println(e.getMessage());
+		      }
+		   }
+
+}
+
 
