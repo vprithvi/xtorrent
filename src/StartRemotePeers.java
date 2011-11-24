@@ -50,7 +50,7 @@ public class StartRemotePeers {
 			myStart.getConfiguration();
 					
 			// get current path
-			String path = System.getProperty("User.dir");
+			String path = System.getProperty("user.dir");
 			
 			// start clients at remote hosts
 			for (int i = 0; i < myStart.peerInfoVector.size(); i++) {
