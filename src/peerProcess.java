@@ -89,6 +89,15 @@ public class peerProcess extends Thread {
 	//Overriding run method
 	public void run() {
 		while(true) {
+			
+			try {
+				System.out.println("Waiting for connections.");
+				Socket client = server.accept();
+				System.out.println("Accepted a connection from: "+
+						client.getInetAddress());
+				Connect c = new Connect(client);
+			} catch(Exception e) {}
+			
 			try{
 		for(int x=0;x<myPeerInfo.size();x++) {
 			
@@ -97,13 +106,7 @@ public class peerProcess extends Thread {
 			}catch(Exception e){
 				
 			}
-			try {
-				System.out.println("Waiting for connections.");
-				Socket client = server.accept();
-				System.out.println("Accepted a connection from: "+
-						client.getInetAddress());
-				Connect c = new Connect(client);
-			} catch(Exception e) {}
+			
 		}
 	}
 	
