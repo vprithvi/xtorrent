@@ -95,7 +95,7 @@ public class peerProcess extends Thread {
 			
 			try {
 				logger.println("Waiting for connections.");
-				Connect c = new Connect(server.accept());
+				Connect c = new Connect(server);
 			} catch(Exception e) {
 		        peerProcess.logger.println(e.getMessage());
 				
@@ -144,30 +144,37 @@ public class peerProcess extends Thread {
 class Connect extends Thread {
 //Socket client = server.accept();
 	private Socket client = null;
+	private ServerSocket server = null;
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
 
 	public Connect() {}
 
-	public Connect(Socket clientSocket) {
-				peerProcess.logger.println("Accepted a connection from: "+
-						client.getInetAddress());
-		client = clientSocket;
-		try {
-			ois = new ObjectInputStream(client.getInputStream());
-			oos = new ObjectOutputStream(client.getOutputStream());
-		} catch(Exception e1) {
-			try {
-				client.close();
-			}catch(Exception e) {
-				peerProcess.logger.println(e.getMessage());
-			}
-			return;
-		}
+	public Connect(ServerSocket serverSocket) {
+//				peerProcess.logger.println("Accepted a connection from: "+
+//						client.getInetAddress());
+//		client = clientSocket;
+		server = serverSocket;
+		this.start();
 	}	
 	   public void run() {
 		      try {
-		         oos.writeObject("Test String");
+		    	 client = server.accept();
+		  
+		 		try {
+					ois = new ObjectInputStream(client.getInputStream());
+					oos = new ObjectOutputStream(client.getOutputStream());
+				} catch(Exception e1) {
+					try {
+						client.close();
+					}catch(Exception e) {
+						peerProcess.logger.println(e.getMessage());
+					}
+					return;
+				}
+
+		    	 
+		    	 oos.writeObject("Test String");
 		         oos.flush();
 		         // close streams and connections
 		         ois.close();
