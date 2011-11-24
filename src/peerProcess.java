@@ -104,6 +104,7 @@ public class peerProcess extends Thread {
 			
 			try{
 		for(int x=0;x<myPeerInfo.size();x++) {
+			    logger.println("Peerinfo size"+myPeerInfo.size());
 		        logger.println("Created a new client with "+myPeerInfo.elementAt(x).peerAddress+" "+Integer.parseInt(myPeerInfo.elementAt(x).peerPort));	
 				Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 				new Client(socket);}
