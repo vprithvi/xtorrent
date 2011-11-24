@@ -28,11 +28,10 @@ public class peerProcess {
 					
 					 String[] tokens = st.split("\\s+");
 					 myPeerInfo.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
-					 if(tokens[0] == this.myID){
+					 
+					 if(myID.equals(tokens[0])){
 						 haveFile = Integer.parseInt(tokens[3]);
-						 System.out.println(tokens[0]+"Yay");
 					 }
-				
 				}
 				
 				in.close();
@@ -75,7 +74,13 @@ public class peerProcess {
 		p.getCommonConfig();
 		
 		
-		//test
+		/* test to print parameters
+		 * 
+		for(int x=0;x<p.myPeerInfo.size();x++) {
+			RemotePeerInfo peer = (RemotePeerInfo)p.myPeerInfo.elementAt(x);
+			System.out.println(peer.peerId+" "+peer.peerAddress+" "+peer.peerPort);
+			
+		}
 		System.out.println( p.myID);
 		System.out.println( p.haveFile);
 		System.out.println (p.nofPreferredNeighbour);
@@ -85,6 +90,7 @@ public class peerProcess {
 		System.out.println (p.fileSize);
 		System.out.println (p.pieceSize);
 		System.out.println (p.nofPieces);
+		*/
 		
 	}
 	
