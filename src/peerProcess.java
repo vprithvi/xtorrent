@@ -91,7 +91,7 @@ public class peerProcess extends Thread {
 	public void run() {
 		System.out.println("in run");
 		logger.print("in run");
-		int times = 6;
+		int times = 1;
 		while(times > 0) {
 		times--;	
 			try {
