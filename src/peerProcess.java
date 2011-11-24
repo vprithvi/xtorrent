@@ -12,7 +12,7 @@ public class peerProcess extends Thread {
 
 	public static String myID;
 	public static int myPort;
-	
+	public static WriteLog logger;
 	public Vector<RemotePeerInfo> myPeerInfo;
 	static int haveFile;
 	static int nofPreferredNeighbour;
@@ -45,7 +45,7 @@ public class peerProcess extends Thread {
 			in.close();
 		}
 		catch (Exception ex) {
-			System.out.println(ex.toString());
+			logger.println(ex.toString());
 		}
 	}
 
@@ -71,18 +71,19 @@ public class peerProcess extends Thread {
 			in.close();
 		}
 		catch (Exception ex) {
-			System.out.println(ex.toString());
+			logger.println(ex.toString());
 		}		
 
 	}
 	
 	//Constructor
 	public peerProcess(String arg) throws Exception {
+		logger = new WriteLog(arg);
 		myID = arg;
 		getPeerInfo();
 		getCommonConfig();
 		server = new ServerSocket(myPort);
-		System.out.println(myID+": Server listening on port " + myPort);
+		logger.println(myID+": Server listening on port " + myPort);
 		this.start();
 	}
 
@@ -91,9 +92,9 @@ public class peerProcess extends Thread {
 		while(true) {
 			
 			try {
-				System.out.println("Waiting for connections.");
+				logger.println("Waiting for connections.");
 				Socket client = server.accept();
-				System.out.println("Accepted a connection from: "+
+				logger.println("Accepted a connection from: "+
 						client.getInetAddress());
 				Connect c = new Connect(client);
 			} catch(Exception e) {}
@@ -120,18 +121,18 @@ public class peerProcess extends Thread {
 		 * 
 		for(int x=0;x<p.myPeerInfo.size();x++) {
 			RemotePeerInfo peer = (RemotePeerInfo)p.myPeerInfo.elementAt(x);
-			System.out.println(peer.peerId+" "+peer.peerAddress+" "+peer.peerPort);
+			logger.println(peer.peerId+" "+peer.peerAddress+" "+peer.peerPort);
 
 		}
-		System.out.println( p.myID);
-		System.out.println( p.haveFile);
-		System.out.println (p.nofPreferredNeighbour);
-		System.out.println (p.unchokingInterval);
-		System.out.println (p.opUnchokingInterval);
-		System.out.println (p.fileName);
-		System.out.println (p.fileSize);
-		System.out.println (p.pieceSize);
-		System.out.println (p.nofPieces);
+		logger.println( p.myID);
+		logger.println( p.haveFile);
+		logger.println (p.nofPreferredNeighbour);
+		logger.println (p.unchokingInterval);
+		logger.println (p.opUnchokingInterval);
+		logger.println (p.fileName);
+		logger.println (p.fileSize);
+		logger.println (p.pieceSize);
+		logger.println (p.nofPieces);
 		 */
 //		new peerProcess();
 	}
@@ -153,7 +154,7 @@ class Connect extends Thread {
 			try {
 				client.close();
 			}catch(Exception e) {
-				System.out.println(e.getMessage());
+				peerProcess.logger.println(e.getMessage());
 			}
 			return;
 		}
@@ -187,11 +188,11 @@ class Client {
 		        ois = new ObjectInputStream(socket.getInputStream());
 		        // read an object from the server
 		        temp = (String) ois.readObject();
-		        System.out.print("Got: " + temp);
+		        peerProcess.logger.print("Got: " + temp);
 		        oos.close();
 		        ois.close();
 		      } catch(Exception e) {
-		        System.out.println(e.getMessage());
+		        peerProcess.logger.println(e.getMessage());
 		      }
 		   }
 

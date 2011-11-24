@@ -18,6 +18,10 @@ class WriteLog{
 		out = new PrintWriter(outFile);
 	}
 
+	public void print(String msg){
+		out.flush();
+		out.println(msg);
+	}
 
 	public void println(String msg){
 		out.flush();
