@@ -167,7 +167,10 @@ class Connect extends Thread {
 		         ois.close();
 		         oos.close();
 		         client.close(); 
-		      } catch(Exception e) {}       
+		      } catch(Exception e) {
+		        peerProcess.logger.println(e.getMessage());
+		    	  
+		      }       
 		   }
 
 }
