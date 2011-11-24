@@ -89,6 +89,8 @@ public class peerProcess extends Thread {
 
 	//Overriding run method
 	public void run() {
+		System.out.println("in run");
+		logger.print("in run");
 		while(true) {
 			
 			try {
