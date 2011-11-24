@@ -97,7 +97,10 @@ public class peerProcess extends Thread {
 				logger.println("Accepted a connection from: "+
 						client.getInetAddress());
 				Connect c = new Connect(client);
-			} catch(Exception e) {}
+			} catch(Exception e) {
+		        peerProcess.logger.println(e.getMessage());
+				
+			}
 			
 			try{
 		for(int x=0;x<myPeerInfo.size();x++) {
@@ -105,6 +108,7 @@ public class peerProcess extends Thread {
 				Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 				new Client(socket);}
 			}catch(Exception e){
+		        peerProcess.logger.println(e.getMessage());
 				
 			}
 			
