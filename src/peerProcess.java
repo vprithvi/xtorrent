@@ -1,10 +1,14 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Vector;
 
 
-public class peerProcess {
+public class peerProcess extends Thread {
 
 	public static String myID;
 	public Vector<RemotePeerInfo> myPeerInfo;
@@ -17,7 +21,7 @@ public class peerProcess {
 	static int pieceSize;
 	static int nofPieces;
 	
-	
+	private ServerSocket server;
 	//Method to read PeerInfo.cfg
 	public void getPeerInfo() {
 			String st;
@@ -67,7 +71,7 @@ public class peerProcess {
 		
 	}
 	
-	public static void main(String[] args){
+	public static void main(String[] args)  throws Exception {
 		peerProcess p = new peerProcess();
 		p.myID = args[0];
 		p.getPeerInfo();
@@ -91,9 +95,49 @@ public class peerProcess {
 		System.out.println (p.pieceSize);
 		System.out.println (p.nofPieces);
 		*/
-		
+		  new peerProcess();
 	}
 	
+	   public peerProcess() throws Exception {
+		     server = new ServerSocket(3000);
+		     System.out.println("Server listening on port 3000.");
+		     this.start();
+		   }
+
+		   public void run() {
+		     while(true) {
+		       try {
+		        System.out.println("Waiting for connections.");
+		        Socket client = server.accept();
+		        System.out.println("Accepted a connection from: "+
+		client.getInetAddress());
+		        Connect c = new Connect(client);
+		       } catch(Exception e) {}
+		     }
+		   }
+		}
+
+		class Connect extends Thread {
+		   private Socket client = null;
+		   private ObjectInputStream ois = null;
+		   private ObjectOutputStream oos = null;
+
+		   public Connect() {}
+
+		   public Connect(Socket clientSocket) {
+		     client = clientSocket;
+		     try {
+		      ois = new ObjectInputStream(client.getInputStream());
+		      oos = new ObjectOutputStream(client.getOutputStream());
+		     } catch(Exception e1) {
+		         try {
+		            client.close();
+		         }catch(Exception e) {
+		           System.out.println(e.getMessage());
+		         }
+		         return;
+		     }
+		   }	
 	
 }
 
