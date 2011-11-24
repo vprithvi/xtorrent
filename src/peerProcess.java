@@ -190,17 +190,14 @@ class Connect extends Thread {
 
 }
 
-class Client {
+class Client extends Thread{
 	      ObjectOutputStream oos = null;
 	      ObjectInputStream ois = null;
 	      Socket socket = null;
-	   public Client(Socket toConnect){
+	   public void run(){
 		      String temp = new String ();
 		      try {
 		        // open a socket connection
-//		        socket = new Socket("localhost", 3000);
-		    	socket = toConnect;
-//		        socket.bind(new InetSocketAddress("localhost",3005));
 		        // open I/O streams for objects
 		        oos = new ObjectOutputStream(socket.getOutputStream());
 		        ois = new ObjectInputStream(socket.getInputStream());
@@ -213,7 +210,12 @@ class Client {
 		      } catch(Exception e) {
 		        peerProcess.logger.println(e.getMessage());
 		      }
-		   }
+		   
+	   }
+	   public Client(Socket toConnect){
+	    	socket = toConnect;
+	    	this.start();
+	   }
 
 }
 
