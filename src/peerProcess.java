@@ -151,6 +151,16 @@ class Connect extends Thread {
 			return;
 		}
 	}	
+	   public void run() {
+		      try {
+		         oos.writeObject("Test String");
+		         oos.flush();
+		         // close streams and connections
+		         ois.close();
+		         oos.close();
+		         client.close(); 
+		      } catch(Exception e) {}       
+		   }
 
 }
 
