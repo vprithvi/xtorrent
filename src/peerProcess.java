@@ -95,10 +95,7 @@ public class peerProcess extends Thread {
 			
 			try {
 				logger.println("Waiting for connections.");
-				Socket client = server.accept();
-				logger.println("Accepted a connection from: "+
-						client.getInetAddress());
-				Connect c = new Connect(client);
+				Connect c = new Connect(server.accept());
 			} catch(Exception e) {
 		        peerProcess.logger.println(e.getMessage());
 				
@@ -145,6 +142,7 @@ public class peerProcess extends Thread {
 }
 
 class Connect extends Thread {
+//Socket client = server.accept();
 	private Socket client = null;
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
@@ -153,6 +151,8 @@ class Connect extends Thread {
 
 	public Connect(Socket clientSocket) {
 		client = clientSocket;
+				peerProcess.logger.println("Accepted a connection from: "+
+						client.getInetAddress());
 		try {
 			ois = new ObjectInputStream(client.getInputStream());
 			oos = new ObjectOutputStream(client.getOutputStream());
