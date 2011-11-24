@@ -77,7 +77,10 @@ public class peerProcess extends Thread {
 	}
 	
 	//Constructor
-	public peerProcess() throws Exception {
+	public peerProcess(String arg) throws Exception {
+		myID = arg;
+		getPeerInfo();
+		getCommonConfig();
 		server = new ServerSocket(myPort);
 		System.out.println(myID+": Server listening on port " + myPort);
 		this.start();
@@ -106,10 +109,8 @@ public class peerProcess extends Thread {
 	
 	//Main method
 	public static void main(String[] args)  throws Exception {
-		peerProcess p = new peerProcess();
-		p.myID = args[0];
-		p.getPeerInfo();
-		p.getCommonConfig();
+	    
+		peerProcess p = new peerProcess(args[0]);
 
 
 		/* test to print parameters
@@ -129,7 +130,7 @@ public class peerProcess extends Thread {
 		System.out.println (p.pieceSize);
 		System.out.println (p.nofPieces);
 		 */
-		new peerProcess();
+//		new peerProcess();
 	}
 }
 
