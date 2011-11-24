@@ -150,9 +150,9 @@ class Connect extends Thread {
 	public Connect() {}
 
 	public Connect(Socket clientSocket) {
-		client = clientSocket;
 				peerProcess.logger.println("Accepted a connection from: "+
 						client.getInetAddress());
+		client = clientSocket;
 		try {
 			ois = new ObjectInputStream(client.getInputStream());
 			oos = new ObjectOutputStream(client.getOutputStream());
