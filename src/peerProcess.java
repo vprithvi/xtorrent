@@ -106,7 +106,7 @@ public class peerProcess extends Thread {
 			
 			try{
 		for(int x=0;x<myPeerInfo.size();x++) {
-			
+		        logger.println("Created a new client with "+myPeerInfo.elementAt(x).peerAddress+" "+Integer.parseInt(myPeerInfo.elementAt(x).peerPort));	
 				Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 				new Client(socket);}
 			}catch(Exception e){
@@ -190,12 +190,13 @@ class Client {
 		      try {
 		        // open a socket connection
 //		        socket = new Socket("localhost", 3000);
-		    	  socket = toConnect;
+		    	socket = toConnect;
 //		        socket.bind(new InetSocketAddress("localhost",3005));
 		        // open I/O streams for objects
 		        oos = new ObjectOutputStream(socket.getOutputStream());
 		        ois = new ObjectInputStream(socket.getInputStream());
 		        // read an object from the server
+		        peerProcess.logger.print(socket.getPort()+"Client :Waiting for string");
 		        temp = (String) ois.readObject();
 		        peerProcess.logger.print("Got: " + temp);
 		        oos.close();
