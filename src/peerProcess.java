@@ -1,9 +1,11 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -106,8 +108,8 @@ public class peerProcess extends Thread {
 				for(int x=0;x<myPeerInfo.size();x++) {
 					logger.println("Peerinfo size"+myPeerInfo.size());
 					logger.println("Created a new client with "+myPeerInfo.elementAt(x).peerAddress+" "+Integer.parseInt(myPeerInfo.elementAt(x).peerPort));	
-					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-					Client clientthread = new Client(socket);
+//					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+					Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 					logger.println("Connected to "+myPeerInfo.elementAt(x).peerAddress+" on "+myPeerInfo.elementAt(x).peerPort);
 				}
 			}catch(Exception e){
@@ -196,7 +198,18 @@ class Client extends Thread{
 	ObjectOutputStream oos = null;
 	ObjectInputStream ois = null;
 	Socket socket = null;
+	String _host = null;
+	int _port = 0;
 	public void run(){
+		try {
+			socket = new Socket(_host,_port);
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		String temp = new String ();
 		try {
 			// open a socket connection
@@ -214,8 +227,9 @@ class Client extends Thread{
 		}
 
 	}
-	public Client(Socket toConnect){
-		socket = toConnect;
+	public Client(String host, int port){
+		_host = host;
+		_port = port;
 		peerProcess.logger.println("in Client code");
 		this.start();
 	}
