@@ -44,7 +44,7 @@ public class peerProcess extends Thread {
 				}
 			}
 
-			in.close();
+			//			in.close();
 		}
 		catch (Exception ex) {
 			logger.println(ex.toString());
@@ -70,7 +70,7 @@ public class peerProcess extends Thread {
 			pieceSize = Integer.parseInt(configInfo.get(5));
 			nofPieces = (int)Math.ceil((double)fileSize/pieceSize);
 
-			in.close();
+			//			in.close();
 		}
 		catch (Exception ex) {
 			logger.println(ex.toString());
@@ -106,11 +106,17 @@ public class peerProcess extends Thread {
 
 			try{
 				for(int x=0;x<myPeerInfo.size();x++) {
-//					logger.println("Peerinfo size"+myPeerInfo.size());
-					logger.println("Created a new client with "+myPeerInfo.elementAt(x).peerAddress+" "+Integer.parseInt(myPeerInfo.elementAt(x).peerPort));	
-//					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-					Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-					logger.println("crossed client"+myPeerInfo.elementAt(x).peerAddress+" on "+myPeerInfo.elementAt(x).peerPort);
+					if (!myPeerInfo.elementAt(x).peerId.equals(myID)) {
+						//					logger.println("Peerinfo size"+myPeerInfo.size());
+						logger.println("Created a new client with "
+								+ myPeerInfo.elementAt(x).peerAddress + " "
+								+ Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+						//					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+						Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,
+								Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+						logger.println("crossed client" + myPeerInfo.elementAt(x).peerAddress
+								+ " on " + myPeerInfo.elementAt(x).peerPort);
+					}
 				}
 			}catch(Exception e){
 				peerProcess.logger.println(e.getMessage());
@@ -166,13 +172,14 @@ class Connect extends Thread {
 	public void run() {
 		try {
 			client = server.accept();
+			peerProcess.logger.println("Server: Accepted connection");
 
 			try {
 				ois = new ObjectInputStream(client.getInputStream());
 				oos = new ObjectOutputStream(client.getOutputStream());
 			} catch(Exception e1) {
 				try {
-					client.close();
+					//					client.close();
 				}catch(Exception e) {
 					peerProcess.logger.println(e.getMessage());
 				}
@@ -180,12 +187,12 @@ class Connect extends Thread {
 			}
 
 
-			oos.writeObject("Test String");
+			oos.writeObject("Test String from "+peerProcess.myID+" and port "+peerProcess.myPort);
 			oos.flush();
 			// close streams and connections
-			ois.close();
-			oos.close();
-			client.close(); 
+			//			ois.close();
+			//			oos.close();
+			//			client.close(); 
 		} catch(Exception e) {
 			peerProcess.logger.println(e.getMessage());
 
@@ -205,9 +212,9 @@ class Client extends Thread{
 			peerProcess.logger.print("Client: in RUN method :"+peerProcess.myID);
 			socket = new Socket(_host,_port);
 			peerProcess.logger.print("Client: Created socket in client :"+peerProcess.myID);
-			} catch (Exception e) {
-				peerProcess.logger.print(e.getMessage());
-			}
+		} catch (Exception e) {
+			peerProcess.logger.print(e.getMessage());
+		}
 		String temp = new String ();
 		try {
 			// open a socket connection
