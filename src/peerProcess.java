@@ -17,6 +17,7 @@ public class peerProcess extends Thread {
 	public static WriteLog logger;
 	public Vector<RemotePeerInfo> myPeerInfo;
 	static int haveFile;
+	static int myRank;
 	static int nofPreferredNeighbour;
 	static int unchokingInterval;
 	static int opUnchokingInterval;
@@ -24,6 +25,7 @@ public class peerProcess extends Thread {
 	static int fileSize;
 	static int pieceSize;
 	static int nofPieces;
+	static int nofPeers;
 
 	private ServerSocket server;
 
@@ -33,16 +35,19 @@ public class peerProcess extends Thread {
 		myPeerInfo = new Vector<RemotePeerInfo>();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader("PeerInfo.cfg"));
+			int count=1; //to calculate myrank
 			while((st = in.readLine()) != null) {
-
+				count++;
 				String[] tokens = st.split("\\s+");
 				myPeerInfo.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
 
 				if(myID.equals(tokens[0])){
 					haveFile = Integer.parseInt(tokens[3]);
 					myPort = Integer.parseInt(tokens[2]);
+					myRank = count; 
 				}
 			}
+			nofPeers = count;
 
 			//			in.close();
 		}
@@ -93,9 +98,11 @@ public class peerProcess extends Thread {
 	public void run() {
 		System.out.println("Server: in run");
 		logger.print("in run");
-		int times = 6;
-		while(times > 0) {
-			times--;	
+		int nofLoops = nofPeers-myRank;
+		
+		//Accept 
+		while(nofLoops > 0) {
+			nofLoops--;	
 			try {
 				logger.println("Server: Waiting for connections.");
 				Connect c = new Connect(server);
@@ -103,27 +110,28 @@ public class peerProcess extends Thread {
 				peerProcess.logger.println(e.getMessage());
 
 			}
-
-			try{
-				for(int x=0;x<myPeerInfo.size();x++) {
-					if (!myPeerInfo.elementAt(x).peerId.equals(myID)) {
-						//					logger.println("Peerinfo size"+myPeerInfo.size());
-						logger.println("Created a new client with "
-								+ myPeerInfo.elementAt(x).peerAddress + " "
-								+ Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-						//					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-						Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,
-								Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-						logger.println("crossed client" + myPeerInfo.elementAt(x).peerAddress
-								+ " on " + myPeerInfo.elementAt(x).peerPort);
-					}
+		}
+		
+		nofLoops = myRank-1;
+		try{
+			for(int x=0;x<nofLoops;x++) {
+				if (!myPeerInfo.elementAt(x).peerId.equals(myID)) {
+					//					logger.println("Peerinfo size"+myPeerInfo.size());
+					logger.println("Created a new client with "
+							+ myPeerInfo.elementAt(x).peerAddress + " "
+							+ Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+					//					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+					Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,
+							Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+					logger.println("crossed client" + myPeerInfo.elementAt(x).peerAddress
+							+ " on " + myPeerInfo.elementAt(x).peerPort);
 				}
-			}catch(Exception e){
-				peerProcess.logger.println(e.getMessage());
-
 			}
+		}catch(Exception e){
+			peerProcess.logger.println(e.getMessage());
 
 		}
+
 	}
 
 	//Main method
