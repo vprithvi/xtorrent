@@ -1,4 +1,6 @@
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,6 +28,7 @@ public class peerProcess extends Thread {
 	static int pieceSize;
 	static int nofPieces;
 	static int nofPeers;
+	File theFile;
 
 	private ServerSocket server;
 
@@ -134,6 +137,13 @@ public class peerProcess extends Thread {
 		}
 
 	}
+	
+	public void readAndSplitFile() {
+		if(haveFile ==1) {
+			theFile = new File(fileName);
+			FileInputStream fis;
+		}
+	}
 
 	//Main method
 	public static void main(String[] args)  throws Exception {
@@ -161,133 +171,3 @@ public class peerProcess extends Thread {
 		//		new peerProcess();
 	}
 }
-
-class Connect extends Thread {
-	//Socket client = server.accept();
-	private Socket socket = null;
-	private ServerSocket server = null;
-	private ObjectInputStream ois = null;
-	private ObjectOutputStream oos = null;
-	String _host = null;
-	int _port = 0;
-	boolean isServer = false;
-	public Connect() {}
-
-	public Connect(ServerSocket serverSocket) {
-		//				peerProcess.logger.println("Accepted a connection from: "+
-		//						client.getInetAddress());
-		//		client = clientSocket;
-		server = serverSocket;
-		isServer = true;
-//		try {
-//			socket = server.accept();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} 
-		this.start();
-	}
-	
-	public Connect(String host, int port){
-	_host = host;
-	_port = port;
-//				try {
-//					socket = new Socket(_host,_port);
-//				} catch (UnknownHostException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-	this.start();
-	}
-	public void run() {
-		try {
-			if(isServer) {
-				socket = server.accept(); 
-				peerProcess.logger.println("Server Accept crossed lp:"+ socket.getLocalPort()+" p"+socket.getPort());
-				ois = new ObjectInputStream(socket.getInputStream());
-				oos = new ObjectOutputStream(socket.getOutputStream());
-			} else {
-				socket = new Socket(_host,_port);
-				peerProcess.logger.println("New Server crossed lp:"+ socket.getLocalPort()+" p"+socket.getPort());
-				oos = new ObjectOutputStream(socket.getOutputStream());
-				ois = new ObjectInputStream(socket.getInputStream());
-			}
-			peerProcess.logger.println("Server: Accepted connection isServer:"+isServer);
-
-			try {
-				oos = new ObjectOutputStream(socket.getOutputStream());
-				ois = new ObjectInputStream(socket.getInputStream());
-			} catch(Exception e1) {
-				try {
-//					socket.close();
-				}catch(Exception e) {
-					peerProcess.logger.println(e.getMessage());
-				}
-//				return;
-			}
-            
-			if(isServer){
-				peerProcess.logger.print("Sent Message");
-				oos.writeObject("Test String from "+peerProcess.myID+" and port "+peerProcess.myPort);
-				oos.flush();
-			} else{
-				peerProcess.logger.print("Waiting for Message");
-				peerProcess.logger.print("Got a message !"+(String) ois.readObject()+"||||INFO: LocalPort "+socket.getLocalPort()+" RemotePort: "+socket.getPort());
-			}
-			// close streams and connections
-//						ois.close();
-//						oos.close();
-//						socket.close(); 
-		} catch(Exception e) {
-			peerProcess.logger.println(e.getMessage());
-
-		}       
-	}
-
-}
-
-class Client extends Thread{
-	ObjectOutputStream oos = null;
-	ObjectInputStream ois = null;
-	Socket socket = null;
-	String _host = null;
-	int _port = 0;
-	public void run(){
-		try {
-			peerProcess.logger.print("Client: in RUN method :"+peerProcess.myID);
-			socket = new Socket(_host,_port);
-			peerProcess.logger.print("Client: Created socket in client :"+peerProcess.myID);
-		} catch (Exception e) {
-			peerProcess.logger.print(e.getMessage());
-		}
-		String temp = new String ();
-		try {
-			// open a socket connection
-			peerProcess.logger.print(socket.getPort()+"Client: Going to open object streams");
-			// open I/O streams for objects
-			oos = new ObjectOutputStream(socket.getOutputStream());
-			ois = new ObjectInputStream(socket.getInputStream());
-			// read an object from the server
-			peerProcess.logger.print(socket.getPort()+"Client :Waiting for string");
-			temp = (String) ois.readObject();
-			peerProcess.logger.print("Got: " + temp);
-			oos.close();
-			ois.close();
-		} catch(Exception e) {
-			peerProcess.logger.println(e.getMessage());
-		}
-
-	}
-	public Client(String host, int port){
-		_host = host;
-		_port = port;
-		peerProcess.logger.println("in Client code");
-		this.start();
-	}
-
-}
-
-
