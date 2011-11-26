@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -28,6 +29,7 @@ public class peerProcess extends Thread {
 	static int pieceSize;
 	static int nofPieces;
 	static int nofPeers;
+	byte[] chunks;
 	File theFile;
 
 	private ServerSocket server;
@@ -94,6 +96,7 @@ public class peerProcess extends Thread {
 		getCommonConfig();
 		server = new ServerSocket(myPort);
 		logger.println(myID+": Server listening on port " + myPort);
+		chunks = new byte[pieceSize];
 		this.start();
 	}
 
@@ -138,13 +141,24 @@ public class peerProcess extends Thread {
 
 	}
 	
-	public void readAndSplitFile() {
+	public byte[] readAndSplitFile() {
 		if(haveFile ==1) {
+			try {
 			theFile = new File(fileName);
-			FileInputStream fis;
+			FileInputStream fis =new FileInputStream(theFile);
+			fis.read(chunks, 0, pieceSize);
+			
+			} catch (Exception e) {
+			
+				e.printStackTrace();
+			}
+			
+			
 		}
+		return chunks;
 	}
-
+	
+	
 	//Main method
 	public static void main(String[] args)  throws Exception {
 

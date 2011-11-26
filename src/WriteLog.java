@@ -11,7 +11,7 @@ class WriteLog{
 	public	WriteLog(String client_id){
 		this.client_id=client_id;
 		try {
-			outFile = new FileWriter(client_id+".log");
+			outFile = new FileWriter("log_peer_"+client_id+".log");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
