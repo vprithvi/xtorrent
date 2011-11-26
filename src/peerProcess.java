@@ -110,7 +110,7 @@ public class peerProcess extends Thread {
 					logger.println("Created a new client with "+myPeerInfo.elementAt(x).peerAddress+" "+Integer.parseInt(myPeerInfo.elementAt(x).peerPort));	
 //					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 					Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
-					logger.println("Connected to "+myPeerInfo.elementAt(x).peerAddress+" on "+myPeerInfo.elementAt(x).peerPort);
+					logger.println("crossed client"+myPeerInfo.elementAt(x).peerAddress+" on "+myPeerInfo.elementAt(x).peerPort);
 				}
 			}catch(Exception e){
 				peerProcess.logger.println(e.getMessage());
@@ -203,16 +203,14 @@ class Client extends Thread{
 	public void run(){
 		try {
 			socket = new Socket(_host,_port);
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+			peerProcess.logger.print("Client: Created socket in client :"+peerProcess.myID);
+			} catch (Exception e) {
+				peerProcess.logger.print(e.getMessage());
+			}
 		String temp = new String ();
 		try {
 			// open a socket connection
+			peerProcess.logger.print(socket.getPort()+"Client: Going to open object streams");
 			// open I/O streams for objects
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
