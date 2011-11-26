@@ -97,7 +97,7 @@ public class peerProcess extends Thread {
 		while(times > 0) {
 			times--;	
 			try {
-				logger.println("Waiting for connections.");
+				logger.println("Server: Waiting for connections.");
 				Connect c = new Connect(server);
 			} catch(Exception e) {
 				peerProcess.logger.println(e.getMessage());
@@ -106,7 +106,7 @@ public class peerProcess extends Thread {
 
 			try{
 				for(int x=0;x<myPeerInfo.size();x++) {
-					logger.println("Peerinfo size"+myPeerInfo.size());
+//					logger.println("Peerinfo size"+myPeerInfo.size());
 					logger.println("Created a new client with "+myPeerInfo.elementAt(x).peerAddress+" "+Integer.parseInt(myPeerInfo.elementAt(x).peerPort));	
 //					Socket socket = new Socket(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 					Client clientthread = new Client(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
@@ -202,6 +202,7 @@ class Client extends Thread{
 	int _port = 0;
 	public void run(){
 		try {
+			peerProcess.logger.print("Client: in RUN method :"+peerProcess.myID);
 			socket = new Socket(_host,_port);
 			peerProcess.logger.print("Client: Created socket in client :"+peerProcess.myID);
 			} catch (Exception e) {
