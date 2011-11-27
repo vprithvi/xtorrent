@@ -28,16 +28,23 @@ class ParallelStream extends Thread {
 			//		synchronized(this){	
 			try{
 				if(isInput){
-					synchronized(this){
+					synchronized(ois){
+//						q.add(ois.readObject());
 						q.put(ois.readObject());
+					
 						peerProcess.logger.println("Read Object from ois and inserted, q(with object is now)"+q.toString());//+obj.toString());
 					}
 				}else{
-					//					Object obj = q.take();
-					//					peerProcess.logger.println("Wrote Object:"+obj.toString());
-					oos.writeObject(q.take());
-					oos.flush();
-
+					synchronized (oos) {
+						//					Object obj = q.take();
+						//					peerProcess.logger.println("Wrote Object:"+obj.toString());
+						oos.flush();
+						oos.writeObject(q.take());
+						oos.flush();
+						peerProcess.logger
+								.println("Wrote Object to oos and removed from q "
+										+ q.toString());
+					}
 				}
 			}catch(Exception e){
 				peerProcess.logger.println(e.getMessage());
@@ -51,7 +58,7 @@ class ParallelStream extends Thread {
 		if (!isInput) {
 			try {
 				q.put(obj);
-				//				peerProcess.logger.println("writeObject: inserted into q");
+				 peerProcess.logger.println("writeObject: inserted into q and write q is "+q.toString());
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e.getMessage());
 				return false;
