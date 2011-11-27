@@ -35,17 +35,23 @@ public class Connect extends Thread {
 				socket = server.accept(); 
 				ois = new ObjectInputStream(socket.getInputStream());
 				oos = new ObjectOutputStream(socket.getOutputStream());
+				pis= new ParallelStream(ois);
+				pos= new ParallelStream(oos);
+
 			} else {
 				socket = new Socket(_host,_port);
 				oos = new ObjectOutputStream(socket.getOutputStream());
 				ois = new ObjectInputStream(socket.getInputStream());
+				pos= new ParallelStream(oos);
+				pis= new ParallelStream(ois);
+
 			}
 			
 
 				if(isServer){
 				
-				pis= new ParallelStream(ois);
-				pos= new ParallelStream(oos);
+//				pis= new ParallelStream(ois);
+//				pos= new ParallelStream(oos);
 				
 				
 				//Server sending handshake message
@@ -60,8 +66,8 @@ public class Connect extends Thread {
 				HandshakeMessage hmServerRecvd = (HandshakeMessage)pis.readObject();
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
 			} else{
-				pos= new ParallelStream(oos);
-				pis= new ParallelStream(ois);
+//				pos= new ParallelStream(oos);
+//				pis= new ParallelStream(ois);
 				
 				
 				//Recving handshake message
