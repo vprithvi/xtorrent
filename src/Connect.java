@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -20,10 +21,19 @@ public class Connect extends Thread {
 	}
 	
 	public Connect(String host, int port){
-	_host = host;
-	_port = port;
-
-	this.start();
+		_host = host;
+		_port = port;
+		this.start();
+	}
+	
+	private boolean send(Object obj){
+		try {
+			oos.writeObject(obj);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			peerProcess.logger.print(e.getMessage());
+		}
+	    return true;	
 	}
 	public void run() {
 		try {
