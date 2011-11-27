@@ -7,10 +7,10 @@ import java.net.Socket;
 public class Connect extends Thread {
 	private Socket socket = null;
 	private ServerSocket server = null;
-	private ObjectInputStream ois = null;
-	private ObjectOutputStream oos = null;
-	private static ParallelStream pos = null;
-	private static ParallelStream pis = null;
+//	private ObjectInputStream ois = null;
+//	private ObjectOutputStream oos = null;
+	private ParallelStream pos = null;
+	private ParallelStream pis = null;
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
@@ -33,17 +33,17 @@ public class Connect extends Thread {
 		try {
 			if(isServer) {
 				socket = server.accept(); 
-				ois = new ObjectInputStream(socket.getInputStream());
-				oos = new ObjectOutputStream(socket.getOutputStream());
-				pis= new ParallelStream(ois);
-				pos= new ParallelStream(oos);
+//				ois = new ObjectInputStream(socket.getInputStream());
+				pis= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
+//				oos = new ObjectOutputStream(socket.getOutputStream());
+				pos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 
 			} else {
 				socket = new Socket(_host,_port);
-				oos = new ObjectOutputStream(socket.getOutputStream());
-				ois = new ObjectInputStream(socket.getInputStream());
-				pos= new ParallelStream(oos);
-				pis= new ParallelStream(ois);
+//				oos = new ObjectOutputStream(socket.getOutputStream());
+				pos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
+//				ois = new ObjectInputStream(socket.getInputStream());
+				pis= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 
 			}
 			
