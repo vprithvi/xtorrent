@@ -20,7 +20,8 @@ class WriteLog{
 
 	public void print(String msg){
 		if(msg.contains("onnect")){
-			msg = "\t\t\t\t\t\t\t"+msg+"";
+			msg = msg.toUpperCase();
+			msg = ""+msg+"";
 		}
 		out.flush();
 		out.println(TimeGen.now()+" "+peerProcess.myID+"::"+msg);
