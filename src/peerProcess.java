@@ -1,14 +1,8 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -107,7 +101,7 @@ public class peerProcess extends Thread {
 		while(nofLoops > 0) {
 			nofLoops--;	
 			try {
-				Connect c = new Connect(server);
+				new Connect(server);
 			} catch(Exception e) {
 				peerProcess.logger.println(e.getMessage());
 
@@ -119,7 +113,7 @@ public class peerProcess extends Thread {
 			for(int x=0;x<nofLoops;x++) {
 				if (!myPeerInfo.elementAt(x).peerId.equals(myID)) {
 					
-					Connect clientthread = new Connect(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
+					new Connect(myPeerInfo.elementAt(x).peerAddress,Integer.parseInt(myPeerInfo.elementAt(x).peerPort));
 					
 				}
 			}
@@ -151,7 +145,7 @@ public class peerProcess extends Thread {
 	//Main method
 	public static void main(String[] args)  throws Exception {
 
-		peerProcess p = new peerProcess(args[0]);
+		new peerProcess(args[0]);
 
 
 		/* test to print parameters
