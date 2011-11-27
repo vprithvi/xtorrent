@@ -20,13 +20,13 @@ class WriteLog{
 
 	public void print(String msg){
 		out.flush();
-		out.println(msg);
+		out.println(TimeGen.now()+":"+msg);
 		out.flush();
 	}
 
 	public void println(String msg){
 		out.flush();
-		out.println(msg);
+		out.println(TimeGen.now()+":"+msg);
 		out.flush();
 	}
 	public void close(){

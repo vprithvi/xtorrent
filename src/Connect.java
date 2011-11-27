@@ -4,7 +4,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Connect extends Thread {
-	//Socket client = server.accept();
 	private Socket socket = null;
 	private ServerSocket server = null;
 	private ObjectInputStream ois = null;
@@ -15,49 +14,29 @@ public class Connect extends Thread {
 	public Connect() {}
 
 	public Connect(ServerSocket serverSocket) {
-		//				peerProcess.logger.println("Accepted a connection from: "+
-		//						client.getInetAddress());
-		//		client = clientSocket;
 		server = serverSocket;
 		isServer = true;
-//		try {
-//			socket = server.accept();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} 
 		this.start();
 	}
 	
 	public Connect(String host, int port){
 	_host = host;
 	_port = port;
-//				try {
-//					socket = new Socket(_host,_port);
-//				} catch (UnknownHostException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
+
 	this.start();
 	}
 	public void run() {
 		try {
 			if(isServer) {
 				socket = server.accept(); 
-				peerProcess.logger.println("Server Accept crossed lp:"+ socket.getLocalPort()+" p"+socket.getPort());
 				ois = new ObjectInputStream(socket.getInputStream());
 				oos = new ObjectOutputStream(socket.getOutputStream());
 			} else {
 				socket = new Socket(_host,_port);
-				peerProcess.logger.println("New Server crossed lp:"+ socket.getLocalPort()+" p"+socket.getPort());
 				oos = new ObjectOutputStream(socket.getOutputStream());
 				ois = new ObjectInputStream(socket.getInputStream());
 			}
-			peerProcess.logger.println("Server: Accepted connection isServer:"+isServer);
-
+			
 			try {
 				oos = new ObjectOutputStream(socket.getOutputStream());
 				ois = new ObjectInputStream(socket.getInputStream());
@@ -71,12 +50,24 @@ public class Connect extends Thread {
 			}
             
 			if(isServer){
-				peerProcess.logger.print("Sent Message");
-				oos.writeObject("Test String from "+peerProcess.myID+" and port "+peerProcess.myPort);
+				
+				//Server sending handshake message
+				HandshakeMessage hm = new HandshakeMessage(peerProcess.myID);
+				oos.writeObject(hm);
 				oos.flush();
+				
+				//Recving handshake message
+				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
+				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
 			} else{
-				peerProcess.logger.print("Waiting for Message");
-				peerProcess.logger.print("Got a message !"+(String) ois.readObject()+"||||INFO: LocalPort "+socket.getLocalPort()+" RemotePort: "+socket.getPort());
+				//Recving handshake message
+				HandshakeMessage hmClientRecvd = (HandshakeMessage)ois.readObject();
+				peerProcess.logger.print(peerProcess.myID + " makes a connection to "+hmClientRecvd.peerID);
+				
+				//Client Sending handshake message
+				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
+				oos.writeObject(hm2);
+				oos.flush();
 			}
 			// close streams and connections
 //						ois.close();

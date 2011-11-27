@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.BitSet;
 
 
-public class HandshakeMessage {
+public class HandshakeMessage implements Serializable{
 	String header;
 	int peerID;
 	BitSet zeroBits;
