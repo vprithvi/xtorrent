@@ -9,6 +9,8 @@ public class Connect extends Thread {
 	private ServerSocket server = null;
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
+	private ParallelStream pos = null;
+	private ParallelStream pis = null;
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
@@ -26,15 +28,7 @@ public class Connect extends Thread {
 		this.start();
 	}
 	
-	private boolean send(Object obj){
-		try {
-			oos.writeObject(obj);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			peerProcess.logger.print(e.getMessage());
-		}
-	    return true;	
-	}
+
 	public void run() {
 		try {
 			if(isServer) {
@@ -48,30 +42,44 @@ public class Connect extends Thread {
 			}
 			
 
-			if(isServer){
+			synchronized (this) {
+				if(isServer){
+				
+				pis= new ParallelStream(ois);
+				pos= new ParallelStream(oos);
+				
 				
 				//Server sending handshake message
 				HandshakeMessage hm = new HandshakeMessage(peerProcess.myID);
-				oos.writeObject(hm);
-				oos.flush();
+//				oos.writeObject(hm);
+//				oos.flush();
+				
+				pos.writeObject(hm);
 				
 				//Recving handshake message
-				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
+//				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
+				HandshakeMessage hmServerRecvd = (HandshakeMessage)pis.readObject();
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
 			} else{
+				pos= new ParallelStream(oos);
+				pis= new ParallelStream(ois);
+				
+				
 				//Recving handshake message
-				HandshakeMessage hmClientRecvd = (HandshakeMessage)ois.readObject();
+				HandshakeMessage hmClientRecvd = (HandshakeMessage)pis.readObject();
 				peerProcess.logger.print(peerProcess.myID + " makes a connection to "+hmClientRecvd.peerID);
 				
 				//Client Sending handshake message
 				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
-				oos.writeObject(hm2);
-				oos.flush();
+//				oos.writeObject(hm2);
+//				oos.flush();
+				pos.writeObject(hm2);
 			}
 			// close streams and connections
 //						ois.close();
 //						oos.close();
 //						socket.close(); 
+			} 
 		} catch(Exception e) {
 			peerProcess.logger.println(e.getMessage());
 
