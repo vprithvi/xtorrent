@@ -37,18 +37,7 @@ public class Connect extends Thread {
 				ois = new ObjectInputStream(socket.getInputStream());
 			}
 			
-			try {
-				oos = new ObjectOutputStream(socket.getOutputStream());
-				ois = new ObjectInputStream(socket.getInputStream());
-			} catch(Exception e1) {
-				try {
-//					socket.close();
-				}catch(Exception e) {
-					peerProcess.logger.println(e.getMessage());
-				}
-//				return;
-			}
-            
+
 			if(isServer){
 				
 				//Server sending handshake message
