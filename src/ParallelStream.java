@@ -47,7 +47,7 @@ class ParallelStream extends Thread {
 					}
 				}
 			}catch(Exception e){
-				peerProcess.logger.println(e.getMessage());
+				peerProcess.logger.println(e.toString());
 			}
 		}
 		//		}
@@ -60,7 +60,7 @@ class ParallelStream extends Thread {
 				q.put(obj);
 				 peerProcess.logger.println("writeObject: inserted into q and write q is "+q.toString());
 			} catch (InterruptedException e) {
-				peerProcess.logger.print(e.getMessage());
+				peerProcess.logger.print(e.toString());
 				return false;
 			}
 			return true;
@@ -77,7 +77,7 @@ class ParallelStream extends Thread {
 				peerProcess.logger.println("readObject:popped "+obj.toString()+" from q :"+q.toString());
 				return obj;
 			} catch (InterruptedException e) {
-				peerProcess.logger.print(e.getMessage());
+				peerProcess.logger.print(e.toString());
 				return null;
 			}
 		}

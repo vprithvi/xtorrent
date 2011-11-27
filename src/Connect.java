@@ -9,8 +9,8 @@ public class Connect extends Thread {
 	private ServerSocket server = null;
 //	private ObjectInputStream ois = null;
 //	private ObjectOutputStream oos = null;
-	private ParallelStream pos = null;
-	private ParallelStream pis = null;
+	private ParallelStream oos = null;
+	private ParallelStream ois = null;
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
@@ -33,52 +33,38 @@ public class Connect extends Thread {
 		try {
 			if(isServer) {
 				socket = server.accept(); 
-//				ois = new ObjectInputStream(socket.getInputStream());
-				pis= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
-//				oos = new ObjectOutputStream(socket.getOutputStream());
-				pos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
+				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
+				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 
 			} else {
 				socket = new Socket(_host,_port);
-//				oos = new ObjectOutputStream(socket.getOutputStream());
-				pos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
-//				ois = new ObjectInputStream(socket.getInputStream());
-				pis= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
+				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
+				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 
 			}
 			
 
 				if(isServer){
 				
-//				pis= new ParallelStream(ois);
-//				pos= new ParallelStream(oos);
-				
 				
 				//Server sending handshake message
 				HandshakeMessage hm = new HandshakeMessage(peerProcess.myID);
-//				oos.writeObject(hm);
-//				oos.flush();
 				
-				pos.writeObject(hm);
+				oos.writeObject(hm);
 				
 				//Recving handshake message
-//				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
-				HandshakeMessage hmServerRecvd = (HandshakeMessage)pis.readObject();
+				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
 			} else{
-//				pos= new ParallelStream(oos);
-//				pis= new ParallelStream(ois);
 				
 				
 				//Recving handshake message
-				HandshakeMessage hmClientRecvd = (HandshakeMessage)pis.readObject();
+				HandshakeMessage hmClientRecvd = (HandshakeMessage)ois.readObject();
 				peerProcess.logger.print(peerProcess.myID + " makes a connection to "+hmClientRecvd.peerID);
 				
 				//Client Sending handshake message
 				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
-//				oos.writeObject(hm2);
-//				oos.flush();
-				pos.writeObject(hm2);
+				oos.writeObject(hm2);
 			}
 			// close streams and connections
 //						ois.close();
@@ -86,7 +72,7 @@ public class Connect extends Thread {
 //						socket.close(); 
 			
 		} catch(Exception e) {
-			peerProcess.logger.println(e.getMessage());
+			peerProcess.logger.println(e.getStackTrace().toString());
 
 		}       
 	}
