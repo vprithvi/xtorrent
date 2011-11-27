@@ -27,8 +27,9 @@ class ParallelStream extends Thread {
 		while(true){
 			try{
 				if(isInput){
-					String temp = (String) ois.readObject();
-					System.out.println("Got:"+temp);
+					Object obj = ois.readObject();
+					System.out.println("Got:"+(String)obj);
+					q.put(obj);
 				}else{
 					System.out.println("Tried to send");
 					Object obj = q.take();
@@ -37,20 +38,36 @@ class ParallelStream extends Thread {
 					oos.flush();
 
 				}
-				sleep(1000);
+				sleep(10);
 			}catch(Exception e){
 				System.out.println(e.getMessage());
 			}
 		}
 	}
-	
-   public boolean writeObject(Object obj){
-	   try {
-		q.put(obj);
-	} catch (InterruptedException e) {
-		peerProcess.logger.print(e.getMessage());
-		return false;
+
+	public boolean writeObject(Object obj){
+		if (!isInput) {
+			try {
+				q.put(obj);
+			} catch (InterruptedException e) {
+				peerProcess.logger.print(e.getMessage());
+				return false;
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
-	   return true;
-   }
+	
+	public Object readObject(){
+		if(isInput){
+			try {
+				return q.take();
+			} catch (InterruptedException e) {
+				peerProcess.logger.print(e.getMessage());
+				return null;
+			}
+		}
+		return null;
+	}
 }
