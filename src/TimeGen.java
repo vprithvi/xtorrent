@@ -2,7 +2,7 @@ import java.util.Calendar;
 import java.text.SimpleDateFormat;
 
 public class TimeGen {
-	public static final String DATE_FORMAT = "[yyyy-MM-dd HH:mm:ss,S]";
+	public static final String DATE_FORMAT = "[yyyy-MM-dd HH:mm:ss,SSS]";
 
 	public static String now() {
 		Calendar cal = Calendar.getInstance();
