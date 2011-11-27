@@ -9,8 +9,8 @@ public class Connect extends Thread {
 	private ServerSocket server = null;
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
-	private ParallelStream pos = null;
-	private ParallelStream pis = null;
+	private static ParallelStream pos = null;
+	private static ParallelStream pis = null;
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
@@ -42,7 +42,6 @@ public class Connect extends Thread {
 			}
 			
 
-			synchronized (this) {
 				if(isServer){
 				
 				pis= new ParallelStream(ois);
@@ -79,7 +78,7 @@ public class Connect extends Thread {
 //						ois.close();
 //						oos.close();
 //						socket.close(); 
-			} 
+			
 		} catch(Exception e) {
 			peerProcess.logger.println(e.getMessage());
 

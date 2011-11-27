@@ -5,8 +5,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 class ParallelStream extends Thread {
 
-	private static ObjectInputStream ois;
-	private static ObjectOutputStream oos;
+	private ObjectInputStream ois;
+	private ObjectOutputStream oos;
 	BlockingQueue<Object> q = new LinkedBlockingQueue<Object>();
 
 	boolean isInput = false;
@@ -24,35 +24,35 @@ class ParallelStream extends Thread {
 
 
 	public void run(){
-//		while(true){
-			synchronized(this){	
-				try{
-					if(isInput){
-//						Object obj = ois.readObject();
-						q.put(ois.readObject());
-//	                    Object obj = q.					
-						peerProcess.logger.println("Read Object:");//+obj.toString());
-					}else{
-//						peerProcess.logger.println("Tried to send");
-						Object obj = q.take();
-						peerProcess.logger.println("Wrote Object:"+obj.toString());
-						oos.writeObject(obj);
-						oos.flush();
+		//		while(true){
+//		synchronized(this){	
+			try{
+				if(isInput){
+					//						Object obj = ois.readObject();
+					q.put(ois.readObject());
+					//	                    Object obj = q.					
+					peerProcess.logger.println("Read Object:");//+obj.toString());
+				}else{
+					//						peerProcess.logger.println("Tried to send");
+					Object obj = q.take();
+					peerProcess.logger.println("Wrote Object:"+obj.toString());
+					oos.writeObject(obj);
+					oos.flush();
 
-					}
-					peerProcess.logger.println("looping"); 	
-				}catch(Exception e){
-					peerProcess.logger.println(e.getMessage());
 				}
+//				peerProcess.logger.println("looping"); 	
+			}catch(Exception e){
+				peerProcess.logger.println(e.getMessage());
 			}
 //		}
+		//		}
 	}
 
 	public boolean writeObject(Object obj){
-//		peerProcess.logger.println("is input in writeobject"+isInput);
+		//		peerProcess.logger.println("is input in writeobject"+isInput);
 		if (!isInput) {
 			try {
-//				peerProcess.logger.println("is not input");
+				//				peerProcess.logger.println("is not input");
 				q.put(obj);
 				peerProcess.logger.println("writeObject: inserted into q");
 			} catch (InterruptedException e) {
