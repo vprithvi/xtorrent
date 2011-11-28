@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,6 +14,7 @@ public class Connect extends Thread {
 	private ServerSocket server = null;
 	private ParallelStream oos = null;
 	private ParallelStream ois = null;
+	
 
 	String _host = null;
 	int _port = 0;
@@ -65,6 +68,9 @@ public class Connect extends Thread {
 				//<modify the bits here>
 				bitfieldMessage.messagePayload = bitfieldMessage.toByteArray(myBits);
 				oos.writeObject(bitfieldMessage);
+				
+				//Sending file chunks
+				oos.writeObject(splitFile());
 
 				
 				
@@ -91,6 +97,31 @@ public class Connect extends Thread {
 			peerProcess.logger.print(e);
 			
 		}       
+	}
+	
+	public byte[] splitFile() {
+		if(peerProcess.haveFile ==1) {
+			try {
+			peerProcess.theFile = new File(peerProcess.fileName);
+			FileInputStream fis =new FileInputStream(peerProcess.theFile);
+			fis.read(peerProcess.chunks, 0, peerProcess.pieceSize);
+			fis.close();
+			peerProcess.logger.println("I have the file. SPLIT it into "+peerProcess.chunks.length+" chunks ");
+					
+			} catch (Exception e) {
+			
+				peerProcess.logger.println(e.toString());
+			}
+			
+			
+		}
+		return peerProcess.chunks;
+	}
+	
+	public File mergeChunks() {
+		File outputFile = new File("output.dat");
+		
+		return outputFile;
 	}
 
 }
