@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.BitSet;
@@ -37,6 +39,7 @@ public class Connect extends Thread {
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 
 			} else {
+				sleep(500);
 				socket = new Socket(_host,_port);
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
@@ -85,8 +88,8 @@ public class Connect extends Thread {
 //						socket.close(); 
 			
 		} catch(Exception e) {
-			peerProcess.logger.println(e.getStackTrace().toString());
-
+			peerProcess.logger.print(e);
+			
 		}       
 	}
 
