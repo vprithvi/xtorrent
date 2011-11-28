@@ -1,9 +1,12 @@
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,6 +18,11 @@ public class Connect extends Thread {
 	private ParallelStream oos = null;
 	private ParallelStream ois = null;
 	
+	public byte[] inChunks;
+	public byte[] outChunks;
+	public long chunkNumber;
+	
+	
 
 	String _host = null;
 	int _port = 0;
@@ -24,12 +32,14 @@ public class Connect extends Thread {
 	public Connect(ServerSocket serverSocket) {
 		server = serverSocket;
 		isServer = true;
+		outChunks = new byte[peerProcess.pieceSize];
 		this.start();
 	}
 	
 	public Connect(String host, int port){
 		_host = host;
 		_port = port;
+		inChunks = new byte[peerProcess.pieceSize];
 		this.start();
 	}
 	
@@ -69,9 +79,14 @@ public class Connect extends Thread {
 				bitfieldMessage.messagePayload = bitfieldMessage.toByteArray(myBits);
 				oos.writeObject(bitfieldMessage);
 				
+				
 				//Sending file chunks
-				oos.writeObject(splitFile());
-
+				for(int j=0;j<peerProcess.nofPieces;j++) {
+					ActualMessage chunk = new ActualMessage(makeChunk(j));
+					oos.writeObject(chunk);
+					peerProcess.logger.println("Sent the chunk " +j);
+				}
+					
 				
 				
 			} else{
@@ -88,6 +103,16 @@ public class Connect extends Thread {
 				//Recving bitfield message
 				ActualMessage bitfieldMessageRcvd = (ActualMessage)ois.readObject();
 				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessageRcvd.messagePayload.length + " from " +hmClientRecvd.peerID);
+				
+				//Recv chunk
+				for(int j=0;j<peerProcess.nofPieces;j++) {
+					ActualMessage recvdChunk = (ActualMessage)ois.readObject();
+					makePartFile(recvdChunk.messagePayload,j);
+					peerProcess.logger.print("Recvd a chunk "+j);
+				}
+				
+				mergeChunks();
+				peerProcess.logger.print("Merged chunks");
 
 			}
 			// close streams and connections
@@ -99,14 +124,15 @@ public class Connect extends Thread {
 		}       
 	}
 	
-	public byte[] splitFile() {
+	public byte[] makeChunk(int chunkNo) {
 		if(peerProcess.haveFile ==1) {
 			try {
 			peerProcess.theFile = new File(peerProcess.fileName);
-			FileInputStream fis =new FileInputStream(peerProcess.theFile);
-			fis.read(peerProcess.chunks, 0, peerProcess.pieceSize);
-			fis.close();
-			peerProcess.logger.println("I have the file. SPLIT it into "+peerProcess.chunks.length+" chunks ");
+			RandomAccessFile ramFile = new RandomAccessFile(peerProcess.theFile, "rwd");
+			ramFile.seek((long)peerProcess.pieceSize*chunkNo);
+			ramFile.read(outChunks, 0, peerProcess.pieceSize);
+			ramFile.close();
+			peerProcess.logger.println("I have the file. SPLIT it into "+outChunks.length+" chunks ");
 					
 			} catch (Exception e) {
 			
@@ -115,13 +141,47 @@ public class Connect extends Thread {
 			
 			
 		}
-		return peerProcess.chunks;
+		return outChunks;
 	}
 	
-	public File mergeChunks() {
-		File outputFile = new File("output.dat");
+	public void makePartFile(byte[] inputChunk, int chunkNumber) {
+		String partName = chunkNumber + ".part";
+		File outputFile = new File(partName);
+		try {
+			FileOutputStream fos = new FileOutputStream(outputFile);
+			fos.write(inputChunk);
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			
+			peerProcess.logger.println(e.toString());
+		}
 		
-		return outputFile;
+	}
+	
+	public void mergeChunks() {
+		try {
+			File outputFile = new File("output.dat");
+			FileOutputStream opfos = new FileOutputStream(outputFile,true);
+			for(int j=0;j<peerProcess.nofPieces;j++) {
+				String partNameHere = j + ".part";
+				File partFile = new File(partNameHere);
+				FileInputStream pffis = new FileInputStream(partFile);
+				byte[] fb = new byte[(int)partFile.length()];
+				pffis.read(fb, 0, (int)partFile.length());
+				opfos.write(fb);
+				opfos.flush();
+				fb = null;
+				pffis.close();
+				pffis =null;
+			}
+			opfos.close();
+		} catch (Exception e) {
+			
+			peerProcess.logger.println(e.toString());
+		}
+		
+		
 	}
 
 }

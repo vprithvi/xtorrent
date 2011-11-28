@@ -23,7 +23,6 @@ public class peerProcess extends Thread {
 	static int pieceSize;
 	static int nofPieces;
 	static int nofPeers;
-	static byte[] chunks;
 	static File theFile;
 
 	private ServerSocket server;
@@ -89,7 +88,6 @@ public class peerProcess extends Thread {
 		getPeerInfo();
 		getCommonConfig();
 		server = new ServerSocket(myPort);
-		chunks = new byte[pieceSize];
 		this.start();
 	}
 

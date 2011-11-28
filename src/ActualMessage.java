@@ -16,6 +16,14 @@ public class ActualMessage implements Serializable {
 		messagePayload = toByteArray(bitfield);
 		length = messagePayload.length;
 	}
+	
+	//Constructor for messages with chunk
+	ActualMessage(byte[] myChunk) {
+		messageType = new Byte ((byte)7);
+		messagePayload = new byte[myChunk.length];
+		messagePayload = myChunk;
+		length = messagePayload.length;
+	}	
 
 	
 /*	ActualMessage(int l,Byte mT, Byte mP) {
