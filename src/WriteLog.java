@@ -1,6 +1,7 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 class WriteLog{
 	FileWriter outFile;
@@ -28,6 +29,16 @@ class WriteLog{
 		out.flush();
 	}
 
+    public void print(Throwable t)
+    {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw, true);
+        t.printStackTrace(pw);
+        pw.flush();
+        sw.flush();
+        print(sw.toString());
+    }
+    
 	public void println(String msg){
 //		out.flush();
 //		out.println(TimeGen.now()+":"+msg);
