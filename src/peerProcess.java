@@ -90,6 +90,7 @@ public class peerProcess extends Thread {
 		getCommonConfig();
 		server = new ServerSocket(myPort);
 		chunks = new byte[pieceSize];
+		readAndSplitFile();
 		this.start();
 	}
 
@@ -130,7 +131,9 @@ public class peerProcess extends Thread {
 			theFile = new File(fileName);
 			FileInputStream fis =new FileInputStream(theFile);
 			fis.read(chunks, 0, pieceSize);
-			
+			fis.close();
+			peerProcess.logger.println("I have the file. Splitted it into "+chunks.length+" chunks ");
+					
 			} catch (Exception e) {
 			
 				e.printStackTrace();
@@ -141,6 +144,10 @@ public class peerProcess extends Thread {
 		return chunks;
 	}
 	
+	/*public File mergeChunks() {
+		File outputFile;
+		return outputFile;
+	}*/
 	
 	//Main method
 	public static void main(String[] args)  throws Exception {

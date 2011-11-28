@@ -3,12 +3,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.BitSet;
 
 public class Connect extends Thread {
 	private Socket socket = null;
 	private ServerSocket server = null;
-//	private ObjectInputStream ois = null;
-//	private ObjectOutputStream oos = null;
 	private ParallelStream pos = null;
 	private ParallelStream pis = null;
 	String _host = null;
@@ -33,16 +32,12 @@ public class Connect extends Thread {
 		try {
 			if(isServer) {
 				socket = server.accept(); 
-//				ois = new ObjectInputStream(socket.getInputStream());
 				pis= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
-//				oos = new ObjectOutputStream(socket.getOutputStream());
 				pos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 
 			} else {
 				socket = new Socket(_host,_port);
-//				oos = new ObjectOutputStream(socket.getOutputStream());
 				pos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
-//				ois = new ObjectInputStream(socket.getInputStream());
 				pis= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 
 			}
@@ -50,25 +45,26 @@ public class Connect extends Thread {
 
 				if(isServer){
 				
-//				pis= new ParallelStream(ois);
-//				pos= new ParallelStream(oos);
-				
-				
 				//Server sending handshake message
 				HandshakeMessage hm = new HandshakeMessage(peerProcess.myID);
-//				oos.writeObject(hm);
-//				oos.flush();
-				
 				pos.writeObject(hm);
 				
 				//Recving handshake message
-//				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
 				HandshakeMessage hmServerRecvd = (HandshakeMessage)pis.readObject();
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
-			} else{
-//				pos= new ParallelStream(oos);
-//				pis= new ParallelStream(ois);
 				
+				//Sending bitfield message
+				ActualMessage bitfieldMessage = new ActualMessage(peerProcess.nofPieces);
+				//<Set bitfield here>
+				BitSet myBits = new BitSet(peerProcess.nofPieces);
+				myBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
+				//<modify the bits here>
+				bitfieldMessage.messagePayload = bitfieldMessage.toByteArray(myBits);
+				pos.writeObject(bitfieldMessage);
+				
+				
+			} else{
+			
 				
 				//Recving handshake message
 				HandshakeMessage hmClientRecvd = (HandshakeMessage)pis.readObject();
@@ -76,13 +72,14 @@ public class Connect extends Thread {
 				
 				//Client Sending handshake message
 				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
-//				oos.writeObject(hm2);
-//				oos.flush();
 				pos.writeObject(hm2);
+				
+				//Recving bitfield message
+				ActualMessage bitfieldMessageRcvd = (ActualMessage)pis.readObject();
+				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessageRcvd.messagePayload.length + " from " +hmClientRecvd.peerID);
+				
 			}
 			// close streams and connections
-//						ois.close();
-//						oos.close();
 //						socket.close(); 
 			
 		} catch(Exception e) {

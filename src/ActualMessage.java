@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.BitSet;
 
 
-public class ActualMessage {
+public class ActualMessage implements Serializable {
 	
 	int length;
 	Byte messageType;
@@ -25,7 +26,7 @@ public class ActualMessage {
 		bitfield.set(1,true);
 	}*/
 	
-	public static BitSet toBitSet(byte[] bytes) {
+	public BitSet toBitSet(byte[] bytes) {
 		BitSet bits = new BitSet();
 		for(int i=0;i<bytes.length*8;i++) {
 			if((bytes[bytes.length-i/8-1]&(1<<(i%8))) > 0){
@@ -35,7 +36,7 @@ public class ActualMessage {
 		return bits;
 	}
 	
-	public static byte[] toByteArray (BitSet bits) {
+	public byte[] toByteArray (BitSet bits) {
 		byte[] bytes = new byte[bits.length()/8+1];
 		for(int i=0;i<bits.length();i++) {
 			if(bits.get(i)) {
@@ -50,6 +51,7 @@ public class ActualMessage {
 		ActualMessage a = new ActualMessage(306);
 		System.out.println(a.length);
 		//System.out.println(a.messagePayload);
+		/*
 		BitSet mb = new BitSet(10);
 		mb.set(2);
 		System.out.println(mb.get(2));
@@ -66,6 +68,8 @@ public class ActualMessage {
 		//System.out.println(a.messageType);
 		//System.out.println(a.bitfield.toString());
 		//System.out.println(a.bitfield.get(0));
+		 * */
+		 
 	}
 
 }
