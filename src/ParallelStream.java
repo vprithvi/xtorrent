@@ -32,7 +32,7 @@ class ParallelStream extends Thread {
 //						q.add(ois.readObject());
 						q.put(ois.readObject());
 					
-						//peerProcess.logger.println("Read Object from ois and inserted, q(with object is now)"+q.toString());//+obj.toString());
+						peerProcess.logger.println("Read Object from ois and inserted, q(with object is now)"+q.toString());//+obj.toString());
 					}
 				}else{
 					synchronized (oos) {
@@ -41,7 +41,7 @@ class ParallelStream extends Thread {
 						oos.flush();
 						oos.writeObject(q.take());
 						oos.flush();
-						//peerProcess.logger.println("Wrote Object to oos and removed from q "+ q.toString());
+						peerProcess.logger.println("Wrote Object to oos and removed from q "+ q.toString());
 					}
 				}
 			}catch(Exception e){
@@ -56,7 +56,7 @@ class ParallelStream extends Thread {
 		if (!isInput) {
 			try {
 				q.put(obj);
-				 //peerProcess.logger.println("writeObject: inserted into q and write q is "+q.toString());
+				 peerProcess.logger.println("writeObject: inserted into q and write q is "+q.toString());
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e.toString());
 				return false;
@@ -70,9 +70,9 @@ class ParallelStream extends Thread {
 	public Object readObject(){
 		if(isInput){
 			try {
-				//peerProcess.logger.println("readObject invoked with q (waiting to pop):"+q.toString());
+				peerProcess.logger.println("readObject invoked with q (waiting to pop):"+q.toString());
 				Object obj=q.take();
-				//peerProcess.logger.println("readObject:popped "+obj.toString()+" from q :"+q.toString());
+				peerProcess.logger.println("readObject:popped "+obj.toString()+" from q :"+q.toString());
 				return obj;
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e.toString());
