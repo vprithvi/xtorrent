@@ -22,10 +22,12 @@ public class ActualMessage implements Serializable {
 
 	//Constructor for messages with chunk
 	ActualMessage(byte[] myChunk) {
-
+		
+		assert (myChunk.length > 0);
 		messageType = 7;
-		messagePayload = myChunk.clone();
-
+//		messagePayload = myChunk.clone();
+		messagePayload = new byte[myChunk.length];
+		System.arraycopy (myChunk,0,messagePayload,0, myChunk.length);
 		length = messagePayload.length;
 		//		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
 	}
