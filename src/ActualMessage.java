@@ -4,9 +4,12 @@ import java.util.BitSet;
 
 public class ActualMessage implements Serializable {
 	
+
+	private static final long serialVersionUID = 3545119718998974040L;
 	int length;
 	int messageType;
 	byte[] messagePayload;
+	
 		
 	//Constructor for bitfield message
 	ActualMessage(int pieces) {
@@ -19,11 +22,14 @@ public class ActualMessage implements Serializable {
 	
 	//Constructor for messages with chunk
 	ActualMessage(byte[] myChunk) {
+
 		messageType = 7;
-		messagePayload = new byte[myChunk.length];
-		messagePayload = myChunk;
+		messagePayload = myChunk.clone();
+
 		length = messagePayload.length;
-	}	
+//		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
+	}
+	
 
 	
 /*	ActualMessage(int l,Byte mT, Byte mP) {
