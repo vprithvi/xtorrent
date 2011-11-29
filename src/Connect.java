@@ -12,8 +12,11 @@ import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Random;
+import java.util.Vector;
 
 public class Connect extends Thread {
 	private Socket socket = null;
@@ -27,6 +30,8 @@ public class Connect extends Thread {
 
 	public boolean complete = false;
 	public boolean haveChunk = false;
+	int hisRank;
+	public int[][] listOfPeersandChunks = new int[peerProcess.nofPeers][peerProcess.nofPieces]; 
 
 
 
@@ -46,7 +51,30 @@ public class Connect extends Thread {
 		_host = host;
 		_port = port;
 		inChunks = new byte[peerProcess.pieceSize];
+
 		this.start();
+	}
+	
+	public int getRank(String peerId) {
+		int rank=0;
+		String st;
+		try {
+			BufferedReader in = new BufferedReader(new FileReader("PeerInfo.cfg"));
+			int count=1; //to calculate myrank
+			while((st = in.readLine()) != null) {
+				
+				String[] tokens = st.split("\\s+");
+				if(peerId.equals(tokens[0])){
+					rank = count; 
+				}
+				count++;
+			}
+			in.close();
+		}
+		catch (Exception ex) {
+			peerProcess.logger.println(ex.toString());
+		}
+		return rank;
 	}
 
 
@@ -67,6 +95,11 @@ public class Connect extends Thread {
 
 
 			if(isServer){
+				//Update its list about itself
+				peerProcess.logger.print("My Rank is " +peerProcess.myRank);
+				for(int u=0;u<peerProcess.nofPieces;u++) {
+					listOfPeersandChunks[peerProcess.myRank-1][u] = 1;
+				}
 
 				//Server sending handshake message
 				HandshakeMessage hm = new HandshakeMessage(peerProcess.myID);
@@ -77,30 +110,31 @@ public class Connect extends Thread {
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
 
 				//Sending bitfield message if it has file or any chunk initially
-				if(peerProcess.haveFile==1 || haveChunk) {
+				if(peerProcess.haveFile==1) {
 					ActualMessage bitfieldMessage = new ActualMessage(peerProcess.nofPieces);
 					//<Set bitfield here>
-					BitSet myBits = new BitSet(peerProcess.nofPieces);
-					myBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
-					//<modify the bits here>
-					bitfieldMessage.messagePayload = bitfieldMessage.toByteArray(myBits);
+					peerProcess.logger.print("nofpieces "+peerProcess.nofPieces);
+					peerProcess.logger.print("Sending bitfield of size "+ bitfieldMessage.messagePayload.length);
 					oos.writeObject(bitfieldMessage);
 				}
-				while(true) {
+				//while(true) {
 					//Sending file chunks
 
-					ActualMessage chunk = new ActualMessage(makeChunk(1));
-					oos.writeObject(chunk);
-					peerProcess.logger.println("Sent the chunk " +1);
+					//ActualMessage chunk = new ActualMessage(makeChunk(1));
+					//oos.writeObject(chunk);
+					//peerProcess.logger.println("Sent the chunk " +1);
 
-				}	
-
+				//}	
+				for(int i=0;i<peerProcess.nofPeers;i++) {
+					for(int j=0;j<peerProcess.nofPieces;j++) {
+						peerProcess.logger.println(listOfPeersandChunks[i][j]+" ");
+					}
+				}
 
 
 
 
 			} else{
-
 
 				//Recving handshake message
 				HandshakeMessage hmClientRecvd = (HandshakeMessage)ois.readObject();
@@ -109,7 +143,35 @@ public class Connect extends Thread {
 				//Client Sending handshake message
 				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
 				oos.writeObject(hm2);
-
+				
+				//Recving bitfield message
+				ActualMessage bmessageRcvd = (ActualMessage)ois.readObject();
+				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bmessageRcvd.messagePayload.length + " from " +hmClientRecvd.peerID);
+				BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
+				myRecvBits = bmessageRcvd.toBitSet(bmessageRcvd.messagePayload);
+				//Updating the list of the chunks the other peer has
+				if(!myRecvBits.isEmpty())
+				{
+					int maxIndex = peerProcess.nofPieces;
+					hisRank = getRank(Integer.toString(hmClientRecvd.peerID));
+					int index=0, firstBit=-1;
+					while(index<maxIndex && index!=firstBit) {
+						int x = myRecvBits.nextSetBit(index);
+						listOfPeersandChunks[hisRank-1][x] =1;
+						index=x+1;
+						firstBit=x;
+					}
+				}
+				peerProcess.logger.print("--------------------------------------");
+				for(int i=0;i<peerProcess.nofPeers;i++) {
+					for(int j=0;j<peerProcess.nofPieces;j++) {
+						peerProcess.logger.println(listOfPeersandChunks[i][j]+" ");
+					}
+					
+				}
+				//ArrayList<Integer> temp2 = (ArrayList<Integer>) hm.get(hmClientRecvd.peerID);
+				//peerProcess.logger.print(peerProcess.myID+" knows that "+ hmClientRecvd.peerID+" has "+temp2.toString());
+/*
 				while(!complete) {
 
 					//Recving message
@@ -136,7 +198,8 @@ public class Connect extends Thread {
 
 					case 5:
 						//bitfield
-						peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ messageRcvd.messagePayload.length + " from " +hmClientRecvd.peerID);
+						//do nothing. already handled this case.
+						
 
 					case 6:
 						//request
@@ -156,7 +219,7 @@ public class Connect extends Thread {
 				// close streams and connections
 				//						socket.close(); 
 
-			} 
+			*/} 
 		}catch(Exception e) {
 			peerProcess.logger.print(e);
 

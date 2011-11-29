@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.BitSet;
 
 
@@ -11,13 +12,18 @@ public class ActualMessage implements Serializable {
 	byte[] messagePayload;
 	
 		
-	//Constructor for bitfield message
+	//Constructor for bitfield message if it has file
 	ActualMessage(int pieces) {
 		messageType = 5;
 		BitSet bitfield = new BitSet(pieces);
-		messagePayload = new byte[bitfield.length()/8];
-		messagePayload = toByteArray(bitfield);
+		for(int i=0;i<pieces;i++) {
+		bitfield.set(i);
+		}
+		//peerProcess.logger.print("Size of bitfield "+bitfield.size()+"\n"+" content "+bitfield.toString()+" pi"+pieces);
+		 byte[] abcd= toByteArray(bitfield).clone();
+		 messagePayload = abcd.clone();
 		length = messagePayload.length;
+		//peerProcess.logger.print("In constructor "+ messagePayload.length);
 	}
 	
 	//Constructor for messages with chunk
@@ -63,15 +69,15 @@ public class ActualMessage implements Serializable {
 	public static void main(String arg[])
 	{
 		ActualMessage a = new ActualMessage(306);
-		System.out.println(a.length);
+		/*System.out.println(a.messagePayload.length);
 		//System.out.println(a.messagePayload);
-		/*
+		
 		BitSet mb = new BitSet(10);
 		mb.set(2);
 		System.out.println(mb.get(2));
 		System.out.println(mb.get(9));
 		byte[] mby = new byte[mb.length()/8+1];
-		mby = toByteArray(mb);
+		mby = toByteArray(mb);* 
 		for (int i =0;i<mby.length;i++){
 		System.out.println(mby[i]);}
 		
@@ -82,8 +88,20 @@ public class ActualMessage implements Serializable {
 		//System.out.println(a.messageType);
 		//System.out.println(a.bitfield.toString());
 		//System.out.println(a.bitfield.get(0));
-		 * */
-		 
-	}
+		BitSet myRecvBits = new BitSet(18);
+		myRecvBits = a.toBitSet(a.messagePayload); 					
+		int maxIndex = 306;
+		
+		int index=0, firstBit=-1;
+		while(index<maxIndex && index!=firstBit) {
+			int x = myRecvBits.nextSetBit(index);
+			index=x+1;
+			firstBit=x;
+			System.out.println(x);
+		}
+		
+		System.out.println("Size of bitfield "+myRecvBits.size()+"\n"+" content "+myRecvBits.toString());
+		*/
 
+	}
 }
