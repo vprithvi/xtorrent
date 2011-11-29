@@ -11,6 +11,36 @@ public class ActualMessage implements Serializable {
 	int messageType;
 	byte[] messagePayload;
 
+	//Constructor for choke,unchoke, interested, not interested
+		ActualMessage(String mType) {
+			if(mType=="choke") {
+				messageType = 0;
+			}
+			else if(mType=="unchoke") {
+				messageType = 1;
+			}
+			else if(mType=="interested") {
+				messageType = 2;
+			}
+			else {
+				messageType = 3;
+			}
+			
+			length = 0;
+		}
+		
+		//Constructor for have, request
+		ActualMessage(String mType,int index) {
+			if(mType=="have") {
+				messageType = 4;
+			}
+			else {
+				messageType = 6;
+			}
+			
+			length = 0;
+		}
+	
 	//Constructor for bitfield message
 	ActualMessage(int pieces) {
 		messageType = 5;
@@ -18,14 +48,13 @@ public class ActualMessage implements Serializable {
 		for(int i=0;i<pieces;i++) {
 		bitfield.set(i);
 		}
-		//peerProcess.logger.print("Size of bitfield "+bitfield.size()+"\n"+" content "+bitfield.toString()+" pi"+pieces);
 		 byte[] abcd= toByteArray(bitfield).clone();
 		 messagePayload = abcd.clone();
 		length = messagePayload.length;
-		//peerProcess.logger.print("In constructor "+ messagePayload.length);
+		
 	}
 
-	//Constructor for messages with chunk
+	//Constructor for piece messages
 	ActualMessage(byte[] myChunk) {
 
 		messageType = 7;
