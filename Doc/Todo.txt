@@ -1,0 +1,3 @@
+Append index/chunk number to the message payload aloong with the chunk for "piece".
+Request and have message constructor to contain chunknumber in message payload. (Bytebuffer should solve this)
+Choke, Unchoke threads and intervals for setting it.

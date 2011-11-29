@@ -12,7 +12,7 @@ public class peerProcess extends Thread {
 	public static String myID;
 	public static int myPort;
 	public static WriteLog logger;
-	public Vector<RemotePeerInfo> myPeerInfo;
+	public static Vector<RemotePeerInfo> myPeerInfo;
 	static int haveFile;
 	static int myRank;
 	static int nofPreferredNeighbour;
@@ -35,7 +35,7 @@ public class peerProcess extends Thread {
 			BufferedReader in = new BufferedReader(new FileReader("PeerInfo.cfg"));
 			int count=1; //to calculate myrank
 			while((st = in.readLine()) != null) {
-				count++;
+				
 				String[] tokens = st.split("\\s+");
 				myPeerInfo.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
 
@@ -44,6 +44,7 @@ public class peerProcess extends Thread {
 					myPort = Integer.parseInt(tokens[2]);
 					myRank = count; 
 				}
+				count++;
 			}
 			nofPeers = count;
 

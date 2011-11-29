@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.BitSet;
 
 
@@ -10,17 +11,50 @@ public class ActualMessage implements Serializable {
 	int messageType;
 	byte[] messagePayload;
 
-
+	//Constructor for choke,unchoke, interested, not interested
+		ActualMessage(String mType) {
+			if(mType=="choke") {
+				messageType = 0;
+			}
+			else if(mType=="unchoke") {
+				messageType = 1;
+			}
+			else if(mType=="interested") {
+				messageType = 2;
+			}
+			else {
+				messageType = 3;
+			}
+			
+			length = 0;
+		}
+		
+		//Constructor for have, request
+		ActualMessage(String mType,int index) {
+			if(mType=="have") {
+				messageType = 4;
+			}
+			else {
+				messageType = 6;
+			}
+			
+			length = 0;
+		}
+	
 	//Constructor for bitfield message
 	ActualMessage(int pieces) {
 		messageType = 5;
 		BitSet bitfield = new BitSet(pieces);
-		messagePayload = new byte[bitfield.length()/8];
-		messagePayload = toByteArray(bitfield);
+		for(int i=0;i<pieces;i++) {
+		bitfield.set(i);
+		}
+		 byte[] abcd= toByteArray(bitfield).clone();
+		 messagePayload = abcd.clone();
 		length = messagePayload.length;
+		
 	}
 
-	//Constructor for messages with chunk
+	//Constructor for piece messages
 	ActualMessage(byte[] myChunk) {
 		
 		assert (myChunk.length > 0);
@@ -62,6 +96,43 @@ public class ActualMessage implements Serializable {
 		return bytes;
 	}
 
+	/*public static void main(String arg[])
+	{
+		ActualMessage a = new ActualMessage(306);
+		System.out.println(a.messagePayload.length);
+		//System.out.println(a.messagePayload);
+		
+		BitSet mb = new BitSet(10);
+		mb.set(2);
+		System.out.println(mb.get(2));
+		System.out.println(mb.get(9));
+		byte[] mby = new byte[mb.length()/8+1];
+		mby = toByteArray(mb);* 
+		for (int i =0;i<mby.length;i++){
+		System.out.println(mby[i]);}
+		
+		BitSet mb2 = new BitSet();
+		mb2 = toBitSet(mby);
+		System.out.println(mb2.get(2));
+		System.out.println(mb2.get(9));
+		//System.out.println(a.messageType);
+		//System.out.println(a.bitfield.toString());
+		//System.out.println(a.bitfield.get(0));
+		BitSet myRecvBits = new BitSet(18);
+		myRecvBits = a.toBitSet(a.messagePayload); 					
+		int maxIndex = 306;
+		
+		int index=0, firstBit=-1;
+		while(index<maxIndex && index!=firstBit) {
+			int x = myRecvBits.nextSetBit(index);
+			index=x+1;
+			firstBit=x;
+			System.out.println(x);
+		}
+		
+		System.out.println("Size of bitfield "+myRecvBits.size()+"\n"+" content "+myRecvBits.toString());
+		
 
 
+	}*/
 }
