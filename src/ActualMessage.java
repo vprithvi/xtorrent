@@ -9,11 +9,7 @@ public class ActualMessage implements Serializable {
 	int length;
 	Byte messageType;
 	byte[] messagePayload;
-	String stringPayload;
-	int chunkid;
 	
-	public int getChunkid(){ return chunkid;}
-	public void setChunkid(int a) { chunkid=a;}
 		
 	//Constructor for bitfield message
 	ActualMessage(int pieces) {
@@ -27,18 +23,11 @@ public class ActualMessage implements Serializable {
 	//Constructor for messages with chunk
 	ActualMessage(byte[] myChunk) {
 		messageType = new Byte ((byte)7);
-//		messagePayload = new byte(myChunk);
-//		messagePayload = new byte[myChunk.length];
 		messagePayload = myChunk.clone();
 		length = messagePayload.length;
 //		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
 	}
 	
-	ActualMessage(String mystring){
-		stringPayload=mystring;
-		length = stringPayload.length();
-		messagePayload = stringPayload.getBytes();
-	}
 
 	
 /*	ActualMessage(int l,Byte mT, Byte mP) {
