@@ -168,6 +168,7 @@ public class Connect extends Thread {
 			try {
 
 				peerProcess.theFile = new File(peerProcess.fileName);
+				assert peerProcess.theFile.exists();
 				RandomAccessFile ramFile = new RandomAccessFile(peerProcess.theFile, "r");
 				ramFile.seek((long)peerProcess.pieceSize*chunkNo);
 				peerProcess.logger.print("Chunk number : "+chunkNo+" Now at offset: " +ramFile.getFilePointer());
