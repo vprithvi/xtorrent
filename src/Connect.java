@@ -20,12 +20,12 @@ public class Connect extends Thread {
 	private ServerSocket server = null;
 	private ParallelStream oos = null;
 	private ParallelStream ois = null;
-	
+
 	public byte[] inChunks;
 	public byte[] outChunks;
 	public long chunkNumber;
-	
-	
+
+
 
 	String _host = null;
 	int _port = 0;
@@ -35,17 +35,17 @@ public class Connect extends Thread {
 	public Connect(ServerSocket serverSocket) {
 		server = serverSocket;
 		isServer = true;
-		outChunks = new byte[peerProcess.pieceSize];
+		
 		this.start();
 	}
-	
+
 	public Connect(String host, int port){
 		_host = host;
 		_port = port;
 		inChunks = new byte[peerProcess.pieceSize];
 		this.start();
 	}
-	
+
 
 	public void run() {
 		try {
@@ -61,18 +61,18 @@ public class Connect extends Thread {
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 
 			}
-			
 
-				if(isServer){
-				
+
+			if(isServer){
+
 				//Server sending handshake message
 				HandshakeMessage hm = new HandshakeMessage(peerProcess.myID);
 				oos.writeObject(hm);
-				
+
 				//Recving handshake message
 				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
-				
+
 				//Sending bitfield message
 				ActualMessage bitfieldMessage = new ActualMessage(peerProcess.nofPieces);
 				//<Set bitfield here>
@@ -81,77 +81,84 @@ public class Connect extends Thread {
 				//<modify the bits here>
 				bitfieldMessage.messagePayload = bitfieldMessage.toByteArray(myBits);
 				oos.writeObject(bitfieldMessage);
-				
-				
+
+
 				//Sending file chunks
 				for(int j=0;j<peerProcess.nofPieces;j++) {
 					ActualMessage chunk = new ActualMessage(makeChunk(j));
-//					peerProcess.logger.print("\n\nWrote to stream\n"+new String(chunk.messagePayload)+"\n");
+					//					peerProcess.logger.print("\n\nWrote to stream\n"+new String(chunk.messagePayload)+"\n");
 					oos.writeObject(chunk);
 					peerProcess.logger.println("Sent the chunk " +j);
 				}
-					
-				
-				
+
+
+
 			} else{
-			
-				
+
+
 				//Recving handshake message
 				HandshakeMessage hmClientRecvd = (HandshakeMessage)ois.readObject();
 				peerProcess.logger.print(peerProcess.myID + " makes a connection to "+hmClientRecvd.peerID);
-				
+
 				//Client Sending handshake message
 				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
 				oos.writeObject(hm2);
-				
+
 				//Recving bitfield message
 				ActualMessage bitfieldMessageRcvd = (ActualMessage)ois.readObject();
 				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessageRcvd.messagePayload.length + " from " +hmClientRecvd.peerID);
-				
+
 				//Recv chunk
 				for(int j=0;j<peerProcess.nofPieces;j++) {
 					ActualMessage recvdChunk = (ActualMessage)ois.readObject();
 					makePartFile(recvdChunk.messagePayload,j);
-//					peerProcess.logger.print("\n\nGot from stream BYTE ARRAY\n"+new String(recvdChunk.messagePayload)+"\n");
-//					peerProcess.logger.print("\n\nGot from stream STRING \n"+new String(recvdChunk.messagePayload)+"\n");
+					//					peerProcess.logger.print("\n\nGot from stream BYTE ARRAY\n"+new String(recvdChunk.messagePayload)+"\n");
+					//					peerProcess.logger.print("\n\nGot from stream STRING \n"+new String(recvdChunk.messagePayload)+"\n");
 					peerProcess.logger.print("Recvd a chunk "+j);
 				}
-				
+
 				mergeChunks();
 				peerProcess.logger.print("Merged chunks");
 
 			}
 			// close streams and connections
-//						socket.close(); 
-			
+			//						socket.close(); 
+
 		} catch(Exception e) {
 			peerProcess.logger.print(e);
-			
+
 		}       
 	}
-	
+
 	public byte[] makeChunk(int chunkNo) {
 		if(peerProcess.haveFile ==1) {
 			try {
-			peerProcess.theFile = new File(peerProcess.fileName);
-			RandomAccessFile ramFile = new RandomAccessFile(peerProcess.theFile, "r");
-			ramFile.seek((long)peerProcess.pieceSize*chunkNo);
-			peerProcess.logger.print("Chunk number : "+chunkNo+" Now at offset: " +ramFile.getFilePointer());
-			ramFile.read(outChunks, 0, peerProcess.pieceSize);
-//			peerProcess.logger.print("\nRead \n"+new String(outChunks)+"\n");
-			ramFile.close();	
-			peerProcess.logger.println("I have the file. SPLIT it into "+outChunks.length+" chunks ");
-					
+				peerProcess.theFile = new File(peerProcess.fileName);
+				RandomAccessFile ramFile = new RandomAccessFile(peerProcess.theFile, "r");
+				ramFile.seek((long)peerProcess.pieceSize*chunkNo);
+				peerProcess.logger.print("Chunk number : "+chunkNo+" Now at offset: " +ramFile.getFilePointer());
+				if(peerProcess.pieceSize*(chunkNo+1)>ramFile.length()){
+					outChunks = new byte[peerProcess.pieceSize];
+					ramFile.read(outChunks, 0, (int) (peerProcess.pieceSize*(chunkNo+1)-ramFile.length()));
+//					peerProcess.logger.print("in IF :"+chunkNo+" "+(peerProcess.pieceSize*(chunkNo+1)-ramFile.length()));
+				} else {
+					outChunks = new byte[peerProcess.pieceSize];
+					ramFile.read(outChunks, 0, peerProcess.pieceSize);
+				}
+				//			peerProcess.logger.print("\nRead \n"+new String(outChunks)+"\n");
+				ramFile.close();	
+				peerProcess.logger.println("I have the file. SPLIT it into "+outChunks.length+" chunks ");
+
 			} catch (Exception e) {
-			
+
 				peerProcess.logger.println(e.toString());
 			}
-			
-			
+
+
 		}
 		return outChunks;
 	}
-	
+
 	public void makePartFile(byte[] inputChunk, int chunkNumber) {
 		String partName = chunkNumber + ".part";
 		File outputFile = new File(partName);
@@ -161,12 +168,12 @@ public class Connect extends Thread {
 			fos.flush();
 			fos.close();
 		} catch (Exception e) {
-			
+
 			peerProcess.logger.println(e.toString());
 		}
-		
+
 	}
-	
+
 	public void mergeChunks() {
 		try {
 			File outputFile = new File("output.dat");
@@ -176,7 +183,7 @@ public class Connect extends Thread {
 				String partNameHere = j + ".part";
 				peerProcess.logger.print("Merging piece :"+partNameHere+" /"+peerProcess.nofPieces);
 
-				
+
 				File partFile = new File(partNameHere);
 				FileInputStream pffis = new FileInputStream(partFile);
 				byte[] fb = new byte[(int)partFile.length()];
@@ -190,11 +197,11 @@ public class Connect extends Thread {
 			op.close();
 			opfos.close();
 		} catch (Exception e) {
-			
+
 			peerProcess.logger.println(e.toString());
 		}
-		
-		
+
+
 	}
 
 }
