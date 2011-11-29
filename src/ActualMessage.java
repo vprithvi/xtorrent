@@ -37,6 +37,7 @@ public class ActualMessage implements Serializable {
 	ActualMessage(String mystring){
 		stringPayload=mystring;
 		length = stringPayload.length();
+		messagePayload = stringPayload.getBytes();
 	}
 
 	
