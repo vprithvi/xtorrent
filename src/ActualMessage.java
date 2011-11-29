@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
 
@@ -55,18 +56,31 @@ public class ActualMessage implements Serializable {
 	}
 
 	//Constructor for piece messages
-	ActualMessage(byte[] myChunk) {
+	ActualMessage(byte[] myChunk, int chunkid) {
+		byte[] chunkid_b = ByteBuffer.allocate(4).putInt(chunkid).array();
 		
 		assert (myChunk.length > 0);
 		messageType = 7;
-//		messagePayload = myChunk.clone();
-		messagePayload = new byte[myChunk.length];
-		System.arraycopy (myChunk,0,messagePayload,0, myChunk.length);
+		messagePayload = new byte[myChunk.length+chunkid_b.length];
+		System.arraycopy (chunkid_b,0,messagePayload,0, chunkid_b.length);
+		System.arraycopy (myChunk,0,messagePayload,chunkid_b.length+1, myChunk.length+chunkid_b.length);
+		
 		length = messagePayload.length;
 		//		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
 	}
 
 
+	public int getChunkid(){
+	  ByteBuffer chunkid_b = ByteBuffer.wrap(messagePayload);
+	  chunkid_b.position(0);
+	  return chunkid_b.getInt();
+	}
+	
+	public byte[] getPayload(){
+	  byte[] payload = new byte[messagePayload.length-4];
+	  System.arraycopy(messagePayload, 4, payload, 0, messagePayload.length-4);
+	  return payload;
+	}
 
 	/*	ActualMessage(int l,Byte mT, Byte mP) {
 		length = l;
