@@ -5,12 +5,12 @@ import java.util.BitSet;
 public class ActualMessage implements Serializable {
 	
 	int length;
-	Byte messageType;
+	int messageType;
 	byte[] messagePayload;
 		
 	//Constructor for bitfield message
 	ActualMessage(int pieces) {
-		messageType = new Byte ((byte)5);
+		messageType = 5;
 		BitSet bitfield = new BitSet(pieces);
 		messagePayload = new byte[bitfield.length()/8];
 		messagePayload = toByteArray(bitfield);
@@ -19,7 +19,7 @@ public class ActualMessage implements Serializable {
 	
 	//Constructor for messages with chunk
 	ActualMessage(byte[] myChunk) {
-		messageType = new Byte ((byte)7);
+		messageType = 7;
 		messagePayload = new byte[myChunk.length];
 		messagePayload = myChunk;
 		length = messagePayload.length;
