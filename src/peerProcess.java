@@ -66,6 +66,7 @@ public class peerProcess extends Thread {
 				String[] tokens = cfg.split("\\s+");
 				configInfo.add(tokens[1]);
 			}
+			
 			nofPreferredNeighbour = Integer.parseInt(configInfo.get(0));
 			unchokingInterval = Integer.parseInt(configInfo.get(1));
 			opUnchokingInterval = Integer.parseInt(configInfo.get(2));
@@ -73,7 +74,10 @@ public class peerProcess extends Thread {
 			fileSize = Integer.parseInt(configInfo.get(4));
 			pieceSize = Integer.parseInt(configInfo.get(5));
 			nofPieces = (int)Math.ceil((double)fileSize/pieceSize);
-
+			assert (pieceSize > 0);
+			assert (fileSize > 0);
+			assert (fileName.length() > 0);
+			
 			//			in.close();
 		}
 		catch (Exception ex) {
