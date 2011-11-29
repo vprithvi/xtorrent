@@ -29,7 +29,7 @@ public class ActualMessage implements Serializable {
 		messageType = new Byte ((byte)7);
 //		messagePayload = new byte(myChunk);
 //		messagePayload = new byte[myChunk.length];
-		messagePayload = myChunk;
+		messagePayload = myChunk.clone();
 		length = messagePayload.length;
 //		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
 	}
