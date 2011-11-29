@@ -85,14 +85,10 @@ public class Connect extends Thread {
 				
 				//Sending file chunks
 				for(int j=0;j<peerProcess.nofPieces;j++) {
-//					ActualMessage chunk = new ActualMessage(makeChunk(j));
 					ActualMessage chunk = new ActualMessage(makeChunk(j));
-					Random randomGenerator = new Random();
-					chunk.setChunkid(randomGenerator.nextInt(1000));
-//					makePartFile(chunk.messagePayload,j);
 //					peerProcess.logger.print("\n\nWrote to stream\n"+new String(chunk.messagePayload)+"\n");
 					oos.writeObject(chunk);
-					peerProcess.logger.println("Sent the chunk " +j + "with chunkid :" + chunk.getChunkid());
+					peerProcess.logger.println("Sent the chunk " +j);
 				}
 					
 				
@@ -116,10 +112,9 @@ public class Connect extends Thread {
 				for(int j=0;j<peerProcess.nofPieces;j++) {
 					ActualMessage recvdChunk = (ActualMessage)ois.readObject();
 					makePartFile(recvdChunk.messagePayload,j);
-//					makePartFile(recvdChunk.stringPayload.getBytes(),j);
-					peerProcess.logger.print("\n\nGot from stream BYTE ARRAY\n"+new String(recvdChunk.messagePayload)+"\n");
-					peerProcess.logger.print("\n\nGot from stream STRING \n"+new String(recvdChunk.messagePayload)+"\n");
-					peerProcess.logger.print("Recvd a chunk "+j+"with chunk id"+recvdChunk.getChunkid());
+//					peerProcess.logger.print("\n\nGot from stream BYTE ARRAY\n"+new String(recvdChunk.messagePayload)+"\n");
+//					peerProcess.logger.print("\n\nGot from stream STRING \n"+new String(recvdChunk.messagePayload)+"\n");
+					peerProcess.logger.print("Recvd a chunk "+j);
 				}
 				
 				mergeChunks();
@@ -136,7 +131,6 @@ public class Connect extends Thread {
 	}
 	
 	public byte[] makeChunk(int chunkNo) {
-//		System.Text.Encoding enc = System.Text.Encoding.ASCII
 		if(peerProcess.haveFile ==1) {
 			try {
 			peerProcess.theFile = new File(peerProcess.fileName);
