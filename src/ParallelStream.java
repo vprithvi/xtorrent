@@ -63,7 +63,9 @@ class ParallelStream extends Thread {
 			}
 			return true;
 		} else {
+			assert (!isInput);
 			return false;
+			
 		}
 	}
 
@@ -76,9 +78,11 @@ class ParallelStream extends Thread {
 				return obj;
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e.toString());
+				
 				return null;
 			}
 		}
+		assert (isInput);
 		return null;
 	}
 }
