@@ -23,6 +23,8 @@ public class Connect extends Thread {
 	private ServerSocket server = null;
 	private ParallelStream oos = null;
 	private ParallelStream ois = null;
+	private static ParallelStream consolidated_oos[] = new ParallelStream[peerProcess.nofPeers];
+	private static int consolidated_index=0;
 
 	public int chunkNumber;
 
@@ -78,21 +80,24 @@ public class Connect extends Thread {
 
 
 	public void run() {
+		
 		try {
 			if(isServer) {
 				socket = server.accept(); 
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
+		
 
 			} else {
 				sleep(500);
 				socket = new Socket(_host,_port);
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
+				
 
 			}
 
-
+			consolidated_oos[consolidated_index++]=oos;
 
 
 			//Update its list about itself
@@ -274,7 +279,7 @@ public class Connect extends Thread {
 							oos.writeObject(notinterested);
 						}
 					}
-
+					peerProcess.logger.print("Consumed a have message");
 					break;
 
 
@@ -314,19 +319,22 @@ public class Connect extends Thread {
 					
 
 					//after recieving broadcast have
-					oos.writeObject(new ActualMessage("have",chunkNumber));
+					broadcastHave(chunkNumber);
+//					oos.writeObject(new ActualMessage("have",chunkNumber));
 					haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
 					//complete = true;
 					//selecting randomly a chunk number from the dont have list only if any chunk is missing.
 					if(dontHaveChunkList.size()>0) {
 						Random rand = new Random();
 						while(true) {
+							peerProcess.logger.print("Processing While");
 							int chunkRequestedFor = dontHaveChunkList.get(rand.nextInt(dontHaveChunkList.size()));
 							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
 								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
 								peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 								break;
 							}
+							peerProcess.logger.print("Should not come here");
 						}
 					}
 					
@@ -432,6 +440,13 @@ public class Connect extends Thread {
 		}
 
 
+	}
+	
+	void broadcastHave(int chunkIndex){
+		for(int i =0; i<consolidated_index; i++){
+			consolidated_oos[i].writeObject(new ActualMessage("have",chunkIndex));
+		}
+		peerProcess.logger.print("Broadcasted the have message");
 	}
 
 	private void printConnections(){
