@@ -232,13 +232,14 @@ public class Connect extends Thread {
 
 					case 1:
 						//recvd unchoke - send a request for any piece you dont have
-						//selecting randomly a chunk number from the dont have list.
-						Random rand = new Random();
-						int rr=rand.nextInt(dontHaveChunkList.size());
-						int chunkRequestedFor = dontHaveChunkList.get(rr);
-						ActualMessage request = new ActualMessage("request",chunkRequestedFor);
-						oos.writeObject(request);
-
+						//selecting randomly a chunk number from the dont have list only if any chunk is missing.
+						if(dontHaveChunkList.size()>0) {
+							Random rand = new Random();
+							int rr=rand.nextInt(dontHaveChunkList.size());
+							int chunkRequestedFor = dontHaveChunkList.get(rr);
+							ActualMessage request = new ActualMessage("request",chunkRequestedFor);
+							oos.writeObject(request);
+						}
 						break;
 
 
@@ -302,26 +303,28 @@ public class Connect extends Thread {
 								haveChunkList.add(j);
 							}
 						}
-//						boolean sentInterested = false;
-//						//send interested message if he has any piece you dont
-//						Random rand2 = new Random();
-//						//selecting randomly from the dont have list.
-//						for(int r=rand2.nextInt(dontHaveChunkList.size());r<dontHaveChunkList.size();r=rand2.nextInt(dontHaveChunkList.size())) {			
-//							for (int j=dontHaveChunkList.get(r);j<peerProcess.nofPieces;j++) {
-//								if(listOfPeersandChunks[hisRank-1][j]==1) {
-//									ActualMessage interested = new ActualMessage("interested");
-//									oos.writeObject(interested);
-//									sentInterested = true;
-//									j=peerProcess.nofPieces; // break out of inner loop
-//									r=dontHaveChunkList.size();  //break out of outer loop
-//								}
-//							}
-//						}
-//
-//						if(!sentInterested) {
-//							ActualMessage interested = new ActualMessage("notinterested");
-//							oos.writeObject(interested);
-//						}
+						boolean sentInterested = false;
+						//send interested message if he has any piece you dont and only if you need atleast one piece
+						if(dontHaveChunkList.size()>0) {
+							Random rand2 = new Random();
+							//selecting randomly from the dont have list.
+							for(int r=rand2.nextInt(dontHaveChunkList.size());r<dontHaveChunkList.size();r=rand2.nextInt(dontHaveChunkList.size())) {			
+								for (int j=dontHaveChunkList.get(r);j<peerProcess.nofPieces;j++) {
+									if(listOfPeersandChunks[hisRank-1][j]==1) {
+										ActualMessage interested = new ActualMessage("interested");
+										oos.writeObject(interested);
+										sentInterested = true;
+										j=peerProcess.nofPieces; // break out of inner loop
+										r=dontHaveChunkList.size();  //break out of outer loop
+									}
+								}
+							}
+						}
+
+						if(!sentInterested) {
+							ActualMessage interested = new ActualMessage("notinterested");
+							oos.writeObject(interested);
+						}
 
 						break;
 
