@@ -46,7 +46,7 @@ public class peerProcess extends Thread {
 				}
 				count++;
 			}
-			nofPeers = count;
+			nofPeers = count-1;
 
 			//			in.close();
 		}

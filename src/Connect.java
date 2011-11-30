@@ -96,6 +96,7 @@ public class Connect extends Thread {
 
 			//Update its list about itself
 			peerProcess.logger.print("My Rank is " +peerProcess.myRank);
+			peerProcess.logger.print("Nofpeersand pieces " +peerProcess.nofPeers+" "+peerProcess.nofPieces);
 			for(int u=0;u<peerProcess.nofPieces;u++) {
 				listOfPeersandChunks[peerProcess.myRank-1][u] = 1;
 			}
