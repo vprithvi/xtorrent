@@ -106,7 +106,7 @@ public class Connect extends Thread {
 
 			//Recving handshake message
 			HandshakeMessage hmRecvd = (HandshakeMessage)ois.readObject();
-
+			hisRank = getRank(Integer.toString(hmRecvd.peerID));
 			if(isServer){
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmRecvd.peerID);
 			} else {
@@ -121,11 +121,20 @@ public class Connect extends Thread {
 				peerProcess.logger.print("Sending bitfield of size "+ bitfieldMessage.messagePayload.length);
 				oos.writeObject(bitfieldMessage);
 			} else {
-				ActualMessage bitfieldMessage = (ActualMessage) oos.readObject();
+				ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
 				//Recving bitfield message
 				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessage.messagePayload.length + " from " +hm.peerID);
 				BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
 				myRecvBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
+				
+				String toPrint2 = new String();
+				for(int[] a:listOfPeersandChunks){
+					for(int b:a){
+						toPrint2+=b+",";
+					}
+					toPrint2+="\n";
+				}
+				peerProcess.logger.print("\n Peer and Chunk Info 1: \n"+toPrint2);	
 
 				//Updating the list of the chunks the other peer has
 				if(!myRecvBits.isEmpty())
@@ -192,7 +201,7 @@ public class Connect extends Thread {
 			//				ActualMessage testChunk = new ActualMessage(makeChunk(16),16);
 			//				oos.writeObject(testChunk);
 
-			hisRank = getRank(Integer.toString(hmRecvd.peerID));
+			
 
 			while(!complete) {
 
