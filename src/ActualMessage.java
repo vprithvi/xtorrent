@@ -67,8 +67,9 @@ public class ActualMessage implements Serializable {
 		assert (chunkid_b.length == 4);
 		messageType = 7;
 		messagePayload = new byte[myChunk.length+chunkid_b.length];
+		peerProcess.logger.print("\nparameter length "+myChunk.length+" chunkid_b" +chunkid_b.length+" messagepayload length "+messagePayload.length);
 		System.arraycopy (chunkid_b,0,messagePayload,0, chunkid_b.length);
-		System.arraycopy (myChunk,0,messagePayload,chunkid_b.length, myChunk.length+chunkid_b.length);
+		System.arraycopy (myChunk,0,messagePayload,chunkid_b.length, myChunk.length);
 		length = messagePayload.length;
 		//		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
 	}
