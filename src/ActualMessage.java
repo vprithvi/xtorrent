@@ -23,7 +23,7 @@ public class ActualMessage implements Serializable {
 			else if(mType=="interested") {
 				messageType = 2;
 			}
-			else {
+			else { //not interested
 				messageType = 3;
 			}
 			
@@ -35,9 +35,13 @@ public class ActualMessage implements Serializable {
 			if(mType=="have") {
 				messageType = 4;
 			}
-			else {
+			else { //request
 				messageType = 6;
 			}
+			byte[] chunkIndex = ByteBuffer.allocate(4).putInt(index).array();
+			messagePayload = new byte[chunkIndex.length];
+			System.arraycopy (chunkIndex,0,messagePayload,0, chunkIndex.length);
+			
 			
 			length = 0;
 		}

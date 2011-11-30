@@ -150,27 +150,33 @@ public class Connect extends Thread {
 
 					case 1:
 						//unchoke
+						break;
 
 
 					case 2:
 						//interested
+						break;
 
 
 					case 3:
 						//not interested
+						break;
 
 
 					case 4:
 						//have
+						break;
 
 
 					case 5:
 						//bitfield
 						//do nothing. already handled this case.
+						break;
 
 
 					case 6:
 						//request
+						break;
 
 					case 7:
 						// piece
@@ -179,6 +185,7 @@ public class Connect extends Thread {
 						//ActualMessage chunk = new ActualMessage(makeChunk(1));
 						//oos.writeObject(chunk);
 						//peerProcess.logger.println("Sent the chunk " +1);
+						break;
 
 					}
 				}
@@ -200,8 +207,8 @@ public class Connect extends Thread {
 				//Client Sending handshake message
 				HandshakeMessage hm2 = new HandshakeMessage(peerProcess.myID);
 				oos.writeObject(hm2);
-
-
+				//obtaining rank of the peer connected to
+				hisRank = getRank(Integer.toString(hmClientRecvd.peerID));
 
 				while(!complete) {
 
@@ -212,25 +219,43 @@ public class Connect extends Thread {
 						//choke
 						//do nothing
 						peerProcess.logger.print(peerProcess.myID+" is choked by "+hmClientRecvd.peerID);
+						break;
 
 					case 1:
-						//unchoke
-						//send a request
+						//recvd unchoke - send a request for any piece you dont have
+						//selecting randomly a chunk number from the dont have list.
+						Random rand = new Random();
+						int rr=rand.nextInt(dontHaveChunkList.size());
+						int chunkRequestedFor = dontHaveChunkList.get(rr);
+						ActualMessage request = new ActualMessage("request",chunkRequestedFor);
+						oos.writeObject(request);
+						
 						break;
 
 
 					case 2:
 						//client wont get interested
+						break;
 
 
 					case 3:
 						//client wont get not interested
+						break;
 
 
 					case 4:
-						//have
+						//recvd have message
 						//update your list
+						int chunkIndex = messageRcvd.getChunkid();
+						listOfPeersandChunks[hisRank-1][chunkIndex]=1;
+						
 						//send interested if you want that piece
+						for(int t=0;t<dontHaveChunkList.size();t++) {
+								if(dontHaveChunkList.get(t)==chunkIndex) {
+									ActualMessage interested = new ActualMessage("interested");
+									oos.writeObject(interested);
+							}
+						}
 						break;
 
 
@@ -244,7 +269,6 @@ public class Connect extends Thread {
 						if(!myRecvBits.isEmpty())
 						{
 							int maxIndex = peerProcess.nofPieces;
-							hisRank = getRank(Integer.toString(hmClientRecvd.peerID));
 							int index=0, firstBit=-1;
 							while(index<maxIndex && index!=firstBit) {
 								int x = myRecvBits.nextSetBit(index);
@@ -271,14 +295,16 @@ public class Connect extends Thread {
 						}
 						boolean sentInterested = false;
 						//send interested message if he has any piece you dont
-						for(int i=0;i<dontHaveChunkList.size();i++) {
-							for (int j=dontHaveChunkList.get(i);j<peerProcess.nofPieces;j++) {
+						Random rand2 = new Random();
+						//selecting randomly from the dont have list.
+						for(int r=rand2.nextInt(dontHaveChunkList.size());r<dontHaveChunkList.size();r=rand2.nextInt(dontHaveChunkList.size())) {			
+							for (int j=dontHaveChunkList.get(r);j<peerProcess.nofPieces;j++) {
 								if(listOfPeersandChunks[hisRank-1][j]==1) {
 									ActualMessage interested = new ActualMessage("interested");
 									oos.writeObject(interested);
 									sentInterested = true;
 									j=peerProcess.nofPieces; // break out of inner loop
-									i=dontHaveChunkList.size();  //break out of outer loop
+									r=dontHaveChunkList.size();  //break out of outer loop
 								}
 							}
 						}
@@ -294,6 +320,7 @@ public class Connect extends Thread {
 					case 6:
 						//request
 						//client wont get request
+						break;
 
 					case 7:
 						// piece
@@ -301,7 +328,9 @@ public class Connect extends Thread {
 						//makePartFile(messageRcvd.messagePayload,chunkNumber);
 
 						//after recieving broadcast have
-						haveChunk = true;
+						
+						
+						haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
 						break;
 
 					}
