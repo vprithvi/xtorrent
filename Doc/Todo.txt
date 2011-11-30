@@ -1,7 +1,7 @@
 
 To do:
 Choke, Unchoke threads and intervals for setting it.
-
+Initiate server sequence once a peer has atleast one chunk.
 
 
 Test:
