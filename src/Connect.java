@@ -26,7 +26,7 @@ public class Connect extends Thread {
 
 	public byte[] inChunks;
 	public byte[] outChunks;
-	public long chunkNumber;
+	public int chunkNumber;
 
 	public boolean complete = false;
 	public boolean haveChunk = false;
@@ -125,7 +125,10 @@ public class Connect extends Thread {
 					}
 				}
 				
-				while(true) {
+				ActualMessage testChunk = new ActualMessage(makeChunk(9),9);
+				oos.writeObject(testChunk);
+				
+			/*	while(true) {
 
 					//Recving message
 					ActualMessage messageRcvd = (ActualMessage)ois.readObject();
@@ -174,6 +177,7 @@ public class Connect extends Thread {
 
 					}
 				}
+				*/
 
 
 
@@ -303,10 +307,11 @@ public class Connect extends Thread {
 						break;
 
 					case 7:
-						// piece
-						//chunkNumber = get from payload
-						//makePartFile(messageRcvd.messagePayload,chunkNumber);
+						// recv piece 
+						chunkNumber = messageRcvd.getChunkid();
+						makePartFile(messageRcvd.getPayload(),chunkNumber);
 						
+						peerProcess.logger.print("Got chunk "+chunkNumber);
 						//after recieving broadcast have
 						
 						
