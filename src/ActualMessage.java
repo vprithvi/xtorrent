@@ -56,6 +56,7 @@ public class ActualMessage implements Serializable {
 		 byte[] abcd= toByteArray(bitfield).clone();
 		 messagePayload = abcd.clone();
 		length = messagePayload.length;
+		peerProcess.logger.print("Bitfield set to " + bitfield.toString() + "with length" + bitfield.length()+"Converted to byte array \n"+messagePayload.length);
 		
 	}
 
