@@ -97,8 +97,12 @@ public class Connect extends Thread {
 			//Update its list about itself
 			peerProcess.logger.print("My Rank is " +peerProcess.myRank);
 			peerProcess.logger.print("Nofpeersand pieces " +peerProcess.nofPeers+" "+peerProcess.nofPieces);
-			for(int u=0;u<peerProcess.nofPieces;u++) {
-				listOfPeersandChunks[peerProcess.myRank-1][u] = 1;
+			if(peerProcess.haveFile==1) {
+
+
+				for(int u=0;u<peerProcess.nofPieces;u++) {
+					listOfPeersandChunks[peerProcess.myRank-1][u] = 1;
+				}
 			}
 
 			//Server sending handshake message
@@ -127,7 +131,7 @@ public class Connect extends Thread {
 				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessage.messagePayload.length + " from " +hm.peerID);
 				BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
 				myRecvBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
-				
+
 				String toPrint2 = new String();
 				for(int[] a:listOfPeersandChunks){
 					for(int b:a){
@@ -202,7 +206,7 @@ public class Connect extends Thread {
 			//				ActualMessage testChunk = new ActualMessage(makeChunk(16),16);
 			//				oos.writeObject(testChunk);
 
-			
+
 
 			while(!complete) {
 
@@ -299,7 +303,7 @@ public class Connect extends Thread {
 					// recv piece 
 					chunkNumber = messageRcvd.getChunkid();
 					makePartFile(messageRcvd.getPayload(),chunkNumber);
-					
+
 					//update matrix and dont have list
 					dontHaveChunkList.remove(chunkNumber);
 					listOfPeersandChunks[Integer.parseInt(peerProcess.myID)][chunkNumber]=1;
