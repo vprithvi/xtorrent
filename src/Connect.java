@@ -28,6 +28,7 @@ public class Connect extends Thread {
 
 	public boolean complete = false;
 	public boolean haveChunk = false;
+	public boolean choked = true;
 	int hisRank;
 	public static int[][] listOfPeersandChunks = new int[peerProcess.nofPeers][peerProcess.nofPieces]; 
 	static ArrayList<Integer> haveChunkList = new ArrayList<Integer>();
@@ -229,7 +230,7 @@ public class Connect extends Thread {
 							int chunkRequestedFor = dontHaveChunkList.get(rand.nextInt(dontHaveChunkList.size()));
 							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
 								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
-								peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID);
+								peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 								break;
 							}
 						}
@@ -304,16 +305,31 @@ public class Connect extends Thread {
 					chunkNumber = messageRcvd.getChunkid();
 					makePartFile(messageRcvd.getPayload(),chunkNumber);
 
-					//update matrix and dont have list
-					dontHaveChunkList.remove(chunkNumber);
-					listOfPeersandChunks[Integer.parseInt(peerProcess.myID)][chunkNumber]=1;
-
 					peerProcess.logger.print("Got chunk "+chunkNumber);
+					peerProcess.logger.print("Dont have list: "+dontHaveChunkList.toString());
+					//update matrix and dont have list
+					dontHaveChunkList.remove(dontHaveChunkList.indexOf(chunkNumber));
+					listOfPeersandChunks[hisRank-1][chunkNumber]=1;
+
+					
 
 					//after recieving broadcast have
 					oos.writeObject(new ActualMessage("have",chunkNumber));
 					haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
-					complete = true;
+					//complete = true;
+					//selecting randomly a chunk number from the dont have list only if any chunk is missing.
+					if(dontHaveChunkList.size()>0) {
+						Random rand = new Random();
+						while(true) {
+							int chunkRequestedFor = dontHaveChunkList.get(rand.nextInt(dontHaveChunkList.size()));
+							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
+								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
+								peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
+								break;
+							}
+						}
+					}
+					
 					break;
 
 				}//end switch case
@@ -373,7 +389,7 @@ public class Connect extends Thread {
 		String partName = chunkNumber + ".part";
 		File outputFile = new File(partName);
 		try {
-			FileOutputStream fos = new FileOutputStream(outputFile);
+			FileOutputStream fos = new FileOutputStream(peerProcess.myID+"/"+outputFile);
 			fos.write(inputChunk);
 			fos.flush();
 			fos.close();
