@@ -35,6 +35,13 @@ public class Connect extends Thread {
 	static ArrayList<Integer> haveChunkList = new ArrayList<Integer>();
 	static ArrayList<Integer> dontHaveChunkList = new ArrayList<Integer>();
 
+
+	//	ArrayList<Integer> connectedPeers = new ArrayList<Integer>();
+	//	ArrayList<Integer> preferredPeers = new ArrayList<Integer>();
+	//	HashMap <Integer, ArrayList<Integer>> connected = new HashMap<Integer, ArrayList<Integer>>() ;
+
+	static boolean[][] isConnected = new boolean [peerProcess.nofPeers][peerProcess.nofPeers];
+
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
@@ -82,6 +89,8 @@ public class Connect extends Thread {
 		try {
 			if(isServer) {
 				socket = server.accept(); 
+				//				peerProcess.logger.print("Connected from "+socket.getPort());
+				//				isConnected[Integer.parseInt(peerProcess.myID)][1]=true;
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 
@@ -93,6 +102,7 @@ public class Connect extends Thread {
 
 			}
 
+			
 
 			if(isServer){
 				//Update its list about itself
@@ -107,6 +117,11 @@ public class Connect extends Thread {
 
 				//Recving handshake message
 				HandshakeMessage hmServerRecvd = (HandshakeMessage)ois.readObject();
+				synchronized (this) {
+					isConnected[hmServerRecvd.peerID][Integer
+							.parseInt(peerProcess.myID)] = true;
+					printConnections();
+				}
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmServerRecvd.peerID);
 
 				//Sending bitfield message if it has file or any chunk initially
@@ -124,7 +139,7 @@ public class Connect extends Thread {
 						peerProcess.logger.println(listOfPeersandChunks[i][j]+" ");
 					}
 				}
-				
+
 				while(true) {
 
 					//Recving message
@@ -175,6 +190,11 @@ public class Connect extends Thread {
 
 				//Recving handshake message
 				HandshakeMessage hmClientRecvd = (HandshakeMessage)ois.readObject();
+				
+				synchronized (this) {
+					isConnected[Integer.parseInt(peerProcess.myID)][hmClientRecvd.peerID] = true;
+					printConnections();	
+				}
 				peerProcess.logger.print(peerProcess.myID + " makes a connection to "+hmClientRecvd.peerID);
 
 				//Client Sending handshake message
@@ -262,12 +282,12 @@ public class Connect extends Thread {
 								}
 							}
 						}
-						
+
 						if(!sentInterested) {
 							ActualMessage interested = new ActualMessage("notinterested");
 							oos.writeObject(interested);
 						}
-						
+
 						break;
 
 
@@ -279,16 +299,16 @@ public class Connect extends Thread {
 						// piece
 						//chunkNumber = get from payload
 						//makePartFile(messageRcvd.messagePayload,chunkNumber);
-						
+
 						//after recieving broadcast have
 						haveChunk = true;
 						break;
 
 					}
 
-
-					mergeChunks();
-					peerProcess.logger.print("Merged chunks");
+					
+//					mergeChunks();
+//					peerProcess.logger.print("Merged chunks");
 
 				}
 				// close streams and connections
@@ -380,6 +400,17 @@ public class Connect extends Thread {
 		}
 
 
+	}
+
+	private void printConnections(){
+		String toPrint = new String();
+		for(boolean[] a:isConnected){
+			for(boolean b:a){
+				toPrint+=b+",";
+			}
+			toPrint+="\n";
+		}
+		peerProcess.logger.print("\nisConnected\n"+toPrint);
 	}
 
 }
