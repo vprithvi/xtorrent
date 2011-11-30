@@ -443,7 +443,7 @@ public class Connect extends Thread {
 	}
 	
 	void broadcastHave(int chunkIndex){
-		for(int i =0; i<consolidated_index; i++){
+		for(int i =0; i<consolidated_index-1; i++){
 			consolidated_oos[i].writeObject(new ActualMessage("have",chunkIndex));
 		}
 		peerProcess.logger.print("Broadcasted the have message");
