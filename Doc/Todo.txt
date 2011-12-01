@@ -7,6 +7,8 @@ Initiate server sequence once a peer has atleast one chunk.
 H
 set unchoke to false when someone sends not interested,
 
+Write code for sending choke on recv interested.
+
 Done :
 Append index/chunk number to the message payload aloong with the chunk for "piece".
 Request and have message constructor to contain chunknumber in message payload. (Bytebuffer should solve this)
