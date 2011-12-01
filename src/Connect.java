@@ -76,8 +76,8 @@ public class Connect extends Thread {
 		this.start();
 	}
 
-	public ArrayList<Integer> removeDuplicates(ArrayList<Integer> a){
-		synchronized (this) {
+	synchronized public ArrayList<Integer> removeDuplicates(ArrayList<Integer> a){
+//		synchronized (this) {
 			//		ArrayList al = new ArrayList();
 			// add elements to al, including duplicates
 			HashSet<Integer> hs = new HashSet<Integer>();
@@ -85,7 +85,7 @@ public class Connect extends Thread {
 			a.clear();
 			a.addAll(hs);
 			return a;
-		}
+//		}
 	}
 
 	public void generatePeerIDList() {
@@ -172,8 +172,13 @@ public class Connect extends Thread {
 			class unchoker extends TimerTask{
 
 				@Override
-				public void run() {
+				synchronized public void run() {
 					try {
+						if(interestedList.size()==0){
+							peerProcess.logger.println("Timer :Empty list");
+							return;
+
+						}
 						//Reset the preferred Neighbors list
 						preferredNeighbors.clear();
 						peerProcess.logger.print("Timer: interested List"+interestedList.toString());
@@ -182,11 +187,7 @@ public class Connect extends Thread {
 						while (numberToUnchoke > 0) {
 							
 							//check if interested list is empty, if so leave it until someone sends interested
-							if(interestedList.size()==0){
-								peerProcess.logger.println("Timer :Empty list");
-								break;
-
-							}
+					
 							numberToUnchoke--;
 							
 							//get the max from the downloadpieces for a peer who is in interested list
@@ -382,7 +383,7 @@ public class Connect extends Thread {
 						peerProcess.logger.println("Case 2:Received interested message from "+hmRecvd.peerID);
 						//Update the interested list
 						interestedList.add(getRank(hmRecvd.peerID+"")-1);
-						peerProcess.logger.println("Interested List is "+interestedList.toString());
+//						peerProcess.logger.println("Interested List is "+interestedList.toString());
 						interestedList=removeDuplicates(interestedList);
 						peerProcess.logger.println("Interested List without dups is "+interestedList.toString());
 						//send unchoke after selecting neighbour from preferred Neighbor
