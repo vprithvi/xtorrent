@@ -212,17 +212,17 @@ public class Connect extends Thread {
 					listOfPeersandChunks[hisRank-1][chunkIndex]=1;
 
 					//send interested if you want that piece else not interested
-					for(int t=0;t<dontHaveChunkList.size();t++) {
-						if(dontHaveChunkList.get(t)==chunkIndex) {
+					
+					peerProcess.logger.print("DontHaveChunk list after recieving have is "+dontHaveChunkList.toString());
+						if(dontHaveChunkList.contains(chunkIndex)) {
 							ActualMessage interested = new ActualMessage("interested");
 							oos.writeObject(interested);
-						}
-						else {
+							peerProcess.logger.print("Sent an interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
+						} else {
 							ActualMessage notinterested = new ActualMessage("notinterested");
 							oos.writeObject(notinterested);
+							peerProcess.logger.print("Sent a NOT interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
 						}
-					}
-					peerProcess.logger.print("Consumed a have message");
 					break;
 
 
@@ -312,10 +312,11 @@ public class Connect extends Thread {
 							peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
 						}
 						else {
-							if(listOfPeersandChunks[peerProcess.myRank][reqIndex]==1){
+							peerProcess.logger.print("case 6: else The listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+reqIndex+"]="+listOfPeersandChunks[peerProcess.myRank-1][reqIndex]);
+							if(listOfPeersandChunks[peerProcess.myRank-1][reqIndex]==1){
 								File chunkFile = new File(fileDirectory+reqIndex+".part");
 								FileInputStream partInput = new FileInputStream(chunkFile);
-								peerProcess.logger.println("Length of chunk "+chunkFile.length());
+								peerProcess.logger.println("Length of chunk "+chunkFile.length()+"in ints "+(int)chunkFile.length() );
 								byte[] chunkb = new byte[(int)chunkFile.length()];
 								peerProcess.logger.println("Length of byte array"+ chunkb.length);
 								partInput.read(chunkb, 0, (int)chunkFile.length());
@@ -340,9 +341,11 @@ public class Connect extends Thread {
 					peerProcess.logger.print("Got chunk "+chunkNumber);
 					peerProcess.logger.print("Dont have list: "+dontHaveChunkList.toString());
 					//update matrix and dont have list
+					if (dontHaveChunkList.indexOf(chunkNumber)>=0){
 					dontHaveChunkList.remove(dontHaveChunkList.indexOf(chunkNumber));
-					listOfPeersandChunks[hisRank-1][chunkNumber]=1;
-
+					}
+					listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]=1;
+					peerProcess.logger.print("case 7 :Updated the listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+chunkNumber+"]="+listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]);
 					
 
 					//after recieving broadcast have
@@ -366,7 +369,7 @@ public class Connect extends Thread {
 									peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 									break;
 								}
-								dontHaveChunkList_temp2.remove(chunkRequestedFor);
+								dontHaveChunkList_temp2.remove(dontHaveChunkList_temp2.indexOf(chunkRequestedFor));
 							}
 						}
 						peerProcess.logger.print("After copy and remove : "+dontHaveChunkList.toString());
