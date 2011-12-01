@@ -38,15 +38,18 @@ public class Connect extends Thread {
 	static ArrayList<Integer> dontHaveChunkList = new ArrayList<Integer>();
 	static ArrayList<Integer> unchokedList = new ArrayList<Integer>();
 
+	String fileDirectory=peerProcess.myID+"/";
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
+	
+	
 	public Connect() {}
 
 	public Connect(ServerSocket serverSocket) {
 		server = serverSocket;
 		isServer = true;
-
+		
 		this.start();
 	}
 
@@ -134,8 +137,12 @@ public class Connect extends Thread {
 				oos.writeObject(bitfieldMessage);
 			} else {
 				ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+//				ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
 				//Recving bitfield message
-				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessage.messagePayload.length + " from " +hmRecvd.peerID);
+				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of type "
+						+bitfieldMessage.messageType +" size "
+				+ bitfieldMessage.messagePayload.length 
+				+ " from " +hmRecvd.peerID);
 				BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
 				myRecvBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
 
@@ -233,7 +240,7 @@ public class Connect extends Thread {
 					ArrayList<Integer> dontHaveChunkList_temp= new ArrayList<Integer>(dontHaveChunkList);
 					if(dontHaveChunkList_temp.size()>0) {
 						Random rand = new Random();
-						while(true) {
+						while(dontHaveChunkList_temp.size()>0) {
 							int chunkRequestedFor = dontHaveChunkList_temp.get(rand.nextInt(dontHaveChunkList_temp.size()));
 							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
 								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
