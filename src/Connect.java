@@ -91,7 +91,7 @@ public class Connect extends Thread {
 	}
 
 	synchronized public List<Integer> removeDuplicates(List<Integer> a){
-//		synchronized (this) {
+		synchronized (this) {
 			//		ArrayList al = new ArrayList();
 			// add elements to al, including duplicates
 			HashSet<Integer> hs = new HashSet<Integer>();
@@ -99,7 +99,7 @@ public class Connect extends Thread {
 			a.clear();
 			a.addAll(hs);
 			return a;
-//		}
+		}
 	}
 	
 	public void generatePeerIDList() {
@@ -199,7 +199,11 @@ public class Connect extends Thread {
 						int numberToUnchoke = peerProcess.nofPreferredNeighbour;
 
 						while (numberToUnchoke > 0) {
-							
+							if(interestedList.size()==0){
+								peerProcess.logger.println("Timer :Empty list");
+								break;
+
+							}
 							//check if interested list is empty, if so leave it until someone sends interested
 					
 							numberToUnchoke--;
