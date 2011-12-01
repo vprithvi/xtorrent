@@ -307,8 +307,23 @@ public class Connect extends Thread {
 					peerProcess.logger.print(hmRecvd.peerID+" requested for chunk "+reqIndex);
 					//if unchoked send piece
 					if(unchokedList.contains(hmRecvd.peerID)) {
-						oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
-						peerProcess.logger.print("Sending "+hmRecvd.peerID+" the chunk "+reqIndex);
+						if(peerProcess.haveFile==1) {
+							oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
+							peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
+						}
+						else {
+							if(listOfPeersandChunks[peerProcess.myRank][reqIndex]==1){
+								File chunkFile = new File(fileDirectory+reqIndex+".part");
+								FileInputStream partInput = new FileInputStream(chunkFile);
+								peerProcess.logger.println("Length of chunk "+chunkFile.length());
+								byte[] chunkb = new byte[(int)chunkFile.length()];
+								peerProcess.logger.println("Length of byte array"+ chunkb.length);
+								partInput.read(chunkb, 0, (int)chunkFile.length());
+								oos.writeObject(new ActualMessage(chunkb,reqIndex));
+								peerProcess.logger.print("Forwarding "+hmRecvd.peerID+" the chunk "+reqIndex);
+							}
+						}
+						
 					}
 					else {
 						peerProcess.logger.print(hmRecvd.peerID+" is choked and does not receive "+reqIndex + " from me.");
