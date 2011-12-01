@@ -170,14 +170,14 @@ public class Connect extends Thread {
 					try {
 						//Reset the preferred Neighbors list
 						preferredNeighbors.clear();
-
+						peerProcess.logger.print("Timer: interested List"+interestedList.toString());
 						int numberToUnchoke = peerProcess.nofPreferredNeighbour;
 						while (numberToUnchoke > 0) {
 							numberToUnchoke--;
 							int max = -100000, max_index = 0;
 							//No of download pieces is rate
 							for (int i = 0; i < downloadPieces.length; i++) {
-								if(!interestedList.contains(getRank(i+""))){
+								if(!interestedList.contains(i)){
 									downloadPieces[i]=Integer.MIN_VALUE;
 								}
 								if (max <= downloadPieces[i]) {
@@ -344,7 +344,7 @@ public class Connect extends Thread {
 					//recvd interested
 					peerProcess.logger.println("Received interested message from "+hmRecvd.peerID);
 					//Update the interested list
-					interestedList.add(hmRecvd.peerID);
+					interestedList.add(getRank(hmRecvd.peerID+"")-1);
 					interestedList=removeDuplicates(interestedList);
 					
 					//send unchoke after selecting neighbour from preferred Neighbor
@@ -367,7 +367,7 @@ public class Connect extends Thread {
 					
 					//Remove if in interested list
 //					if(interestedList.contains(hmRecvd.peerID)){
-						interestedList.remove((Object)hmRecvd.peerID);
+						interestedList.remove((Object)(getRank(hmRecvd.peerID+"")-1));
 //					}
 					if(unchokedList.contains(hmRecvd.peerID)){
 						unchokedList.remove(unchokedList.indexOf(hmRecvd.peerID));
