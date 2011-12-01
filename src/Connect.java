@@ -136,80 +136,8 @@ public class Connect extends Thread {
 				peerProcess.logger.print("Sending bitfield of size "+ bitfieldMessage.messagePayload.length);
 				oos.writeObject(bitfieldMessage);
 			} else {
-				ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
-//				ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
-				//Recving bitfield message
-				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of type "
-						+bitfieldMessage.messageType +" size "
-				+ bitfieldMessage.messagePayload.length 
-				+ " from " +hmRecvd.peerID);
-				BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
-				myRecvBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
 
-				String toPrint2 = new String();
-				for(int[] a:listOfPeersandChunks){
-					for(int b:a){
-						toPrint2+=b+",";
-					}
-					toPrint2+="\n";
-				}
-				peerProcess.logger.print("\n Peer and Chunk Info 1: \n"+toPrint2);	
-
-				//Updating the list of the chunks the other peer has
-				if(!myRecvBits.isEmpty())
-				{
-					hisRank = getRank(Integer.toString(hmRecvd.peerID));
-					for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
-						peerProcess.logger.print(" x "+x);	
-						listOfPeersandChunks[hisRank-1][x] =1;
-					}
-				}
-
-				String toPrint = new String();
-				for(int[] a:listOfPeersandChunks){
-					for(int b:a){
-						toPrint+=b+",";
-					}
-					toPrint+="\n";
-				}
-				peerProcess.logger.print("\n Peer and Chunk Info: \n"+toPrint);				
-
-				//updating your dont have list
-				for(int j=0;j<peerProcess.nofPieces;j++) {
-					if(listOfPeersandChunks[peerProcess.myRank-1][j]==0) {
-						dontHaveChunkList.add(j);
-					}
-
-				}
-
-
-				//updating your havelist
-				for(int j=0;j<peerProcess.nofPieces;j++) {
-					if(listOfPeersandChunks[peerProcess.myRank-1][j]==1) {
-						haveChunkList.add(j);
-					}
-				}
-
-				boolean sentInterested = false;
-				//send interested message if he has any piece you dont and only if you need atleast one piece
-				if(dontHaveChunkList.size()>0) {
-					Random rand2 = new Random();
-					//selecting randomly from the dont have list.
-					while(true) {
-						if(listOfPeersandChunks[hisRank-1][dontHaveChunkList.get(rand2.nextInt(dontHaveChunkList.size()))]==1) {
-							ActualMessage interested = new ActualMessage("interested");
-							oos.writeObject(interested);
-							sentInterested = true;
-							break;
-						}
-					}
-
-				}
-
-				if(!sentInterested) {
-					ActualMessage interested = new ActualMessage("notinterested");
-					oos.writeObject(interested);
-				}
+				peerProcess.logger.println("Bitfield Expected");
 
 			}
 
@@ -247,7 +175,11 @@ public class Connect extends Thread {
 								peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 								break;
 							}
-							dontHaveChunkList_temp.remove(chunkRequestedFor);
+							
+							peerProcess.logger.println("Attempting to remove element "+chunkRequestedFor+"having index"+dontHaveChunkList_temp.indexOf(chunkRequestedFor));
+//							peerProcess.logger.println("the don't have chunk list is now"+dontHaveChunkList.toString());
+							dontHaveChunkList_temp.remove(dontHaveChunkList_temp.indexOf(chunkRequestedFor));
+							
 						}
 					}
 					peerProcess.logger.print("After copy and remove at top : "+dontHaveChunkList.toString());
@@ -296,7 +228,76 @@ public class Connect extends Thread {
 
 				case 5:
 					//Recving bitfield message
-					peerProcess.logger.print("Inside bitfield - switch case. Should not be here ! --------");
+					peerProcess.logger.print("Inside bitfield - switch case.--------");
+//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+					//Recving bitfield message
+					peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of type "
+							+messageRcvd.messageType +" size "
+					+ messageRcvd.messagePayload.length 
+					+ " from " +hmRecvd.peerID);
+					BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
+					myRecvBits = messageRcvd.toBitSet(messageRcvd.messagePayload);
+
+					String toPrint2 = new String();
+					for(int[] a:listOfPeersandChunks){
+						for(int b:a){
+							toPrint2+=b+",";
+						}
+						toPrint2+="\n";
+					}
+					peerProcess.logger.print("\n Peer and Chunk Info 1: \n"+toPrint2);	
+
+					//Updating the list of the chunks the other peer has
+					if(!myRecvBits.isEmpty())
+					{
+						hisRank = getRank(Integer.toString(hmRecvd.peerID));
+						for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
+							peerProcess.logger.print(" x "+x);	
+							listOfPeersandChunks[hisRank-1][x] =1;
+						}
+					}
+
+					String toPrint = new String();
+					for(int[] a:listOfPeersandChunks){
+						for(int b:a){
+							toPrint+=b+",";
+						}
+						toPrint+="\n";
+					}
+					peerProcess.logger.print("\n Peer and Chunk Info: \n"+toPrint);				
+
+					//updating your dont have list
+					for(int j=0;j<peerProcess.nofPieces;j++) {
+						if(listOfPeersandChunks[peerProcess.myRank-1][j]==0) {
+							dontHaveChunkList.add(j);
+						}
+
+					}
+					
+					boolean sentInterested = false;
+					//send interested message if he has any piece you dont and only if you need atleast one piece
+					if(dontHaveChunkList.size()>0) {
+						Random rand2 = new Random();
+						//selecting randomly from the dont have list.
+						while(true) {
+							peerProcess.logger.println("Got bitfield, dontHAveChunkList is "+dontHaveChunkList.toString()+
+									" with size"+ dontHaveChunkList.size());
+							if(listOfPeersandChunks[hisRank-1][dontHaveChunkList.get(rand2.nextInt(dontHaveChunkList.size()))]==1) {
+								ActualMessage interested = new ActualMessage("interested");
+								oos.writeObject(interested);
+								sentInterested = true;
+								break;
+							}
+						}
+
+					}
+
+					if(!sentInterested) {
+						ActualMessage interested = new ActualMessage("notinterested");
+						oos.writeObject(interested);
+					}
+					
 					break;
 
 
