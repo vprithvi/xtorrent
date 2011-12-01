@@ -180,7 +180,7 @@ public class Connect extends Thread {
 								if(!interestedList.contains(getRank(i+""))){
 									downloadPieces[i]=Integer.MIN_VALUE;
 								}
-								if (max < downloadPieces[i]) {
+								if (max <= downloadPieces[i]) {
 									max = downloadPieces[i];
 									max_index = i;
 
@@ -188,7 +188,10 @@ public class Connect extends Thread {
 							}
 							//remove the peer with max rate and unchoke 
 							downloadPieces[max_index] = -10000;
+							//SEND UNCHOKE
+							
 							synchronized(this){
+								
 								//								peerProcess.logger.println();
 								//								peerProcess.logger.print("Timer outside if: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
 								if(!preferredNeighbors.contains((max_index+1))){
@@ -200,7 +203,8 @@ public class Connect extends Thread {
 
 								//Remove if I added myself and reiterate
 								if(preferredNeighbors.contains(peerProcess.myRank)){
-									preferredNeighbors.remove(preferredNeighbors.indexOf(peerProcess.myRank));
+//									preferredNeighbors.remove(preferredNeighbors.indexOf(peerProcess.myRank));
+									peerProcess.logger.print("Timer: contain myself Should not come here");
 								}
 							}//synch
 						}//while
