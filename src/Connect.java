@@ -23,6 +23,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+
+
 public class Connect extends Thread {
 	private Socket socket = null;
 	private ServerSocket server = null;
@@ -30,6 +32,7 @@ public class Connect extends Thread {
 	private ParallelStream ois = null;
 	private static ParallelStream consolidated_oos[] = new ParallelStream[peerProcess.nofPeers];
 	//	private static int consolidated_index=0;
+
 
 	public int chunkNumber;
 
@@ -73,15 +76,17 @@ public class Connect extends Thread {
 	}
 
 	public ArrayList<Integer> removeDuplicates(ArrayList<Integer> a){
-//		ArrayList al = new ArrayList();
-		// add elements to al, including duplicates
-		HashSet<Integer> hs = new HashSet<Integer>();
-		hs.addAll(a);
-		a.clear();
-		a.addAll(hs);
-		return a;
+		synchronized (this) {
+			//		ArrayList al = new ArrayList();
+			// add elements to al, including duplicates
+			HashSet<Integer> hs = new HashSet<Integer>();
+			hs.addAll(a);
+			a.clear();
+			a.addAll(hs);
+			return a;
+		}
 	}
-	
+
 	public void generatePeerIDList() {
 		String st;
 		try {
@@ -172,33 +177,34 @@ public class Connect extends Thread {
 						preferredNeighbors.clear();
 						peerProcess.logger.print("Timer: interested List"+interestedList.toString());
 						int numberToUnchoke = peerProcess.nofPreferredNeighbour;
-						
+
 						while (numberToUnchoke > 0) {
 							if(interestedList.size()==0){
 								peerProcess.logger.println("Timer :Empty list");
 								break;
-								
+
 							}
-							
+
 							numberToUnchoke--;
 							int max = Integer.MIN_VALUE, max_index = 0;
 							//No of download pieces is rate
 							for (int i = 0; i < downloadPieces.length; i++) {
 								if(!interestedList.contains(i)){
-									downloadPieces[i]=Integer.MIN_VALUE;
-								}
+//									downloadPieces[i]=Integer.MIN_VALUE;
+								
 								if (max <= downloadPieces[i]) {
 									max = downloadPieces[i];
 									max_index = i;
 
 								}
+								}
 							}
 							//remove the peer with max rate and unchoke 
 							downloadPieces[max_index] = Integer.MIN_VALUE;
 							//SEND UNCHOKE
-							
+
 							synchronized(this){
-								
+
 								//								peerProcess.logger.println();
 								//								peerProcess.logger.print("Timer outside if: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
 								if(!preferredNeighbors.contains((max_index))){
@@ -210,40 +216,40 @@ public class Connect extends Thread {
 
 								//Remove if I added myself and reiterate
 								if(preferredNeighbors.contains(peerProcess.myRank-1)){
-//									preferredNeighbors.remove(preferredNeighbors.indexOf(peerProcess.myRank));
+																		preferredNeighbors.remove((Object)(peerProcess.myRank-1));
 									peerProcess.logger.print("Timer: contain myself Should not come here");
 								}
 							}//synch
 						}//while
-//
-//						chokedNeighbors.add(1024);
-//						chokedNeighbors.clear();
-//						chokedNeighbors.addAll(rankList);
-//						chokedNeighbors=removeDuplicates(chokedNeighbors);
-//						preferredNeighbors=removeDuplicates(preferredNeighbors);
-//						peerProcess.logger.print("Timer: Choked neighbor list (peeridlist): "+chokedNeighbors.toString());
-//
-//						chokedNeighbors.remove((Object)peerProcess.myRank);
-//						chokedNeighbors.removeAll(preferredNeighbors);
-//
-//
-//						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
-//						int n=10;
-//						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour&&n>0){
-//							//Remove preferred neighbors from peerld list
-//							n--;
-//							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
-//							if(index>0){
-//								selected_neighbor = chokedNeighbors.get(index);
-//							}
-//							if(chokedNeighbors.size()!=0&&selected_neighbor>0){
-//								preferredNeighbors.add(selected_neighbor);
-//								chokedNeighbors.remove((Object)selected_neighbor);
-//							}else{
-//
-//							}
-//							peerProcess.logger.print("Timer: populating remaining spaces: "+preferredNeighbors.toString());
-//						}
+						//
+						//						chokedNeighbors.add(1024);
+						//						chokedNeighbors.clear();
+						//						chokedNeighbors.addAll(rankList);
+						//						chokedNeighbors=removeDuplicates(chokedNeighbors);
+						//						preferredNeighbors=removeDuplicates(preferredNeighbors);
+						//						peerProcess.logger.print("Timer: Choked neighbor list (peeridlist): "+chokedNeighbors.toString());
+						//
+						//						chokedNeighbors.remove((Object)peerProcess.myRank);
+						//						chokedNeighbors.removeAll(preferredNeighbors);
+						//
+						//
+						//						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
+						//						int n=10;
+						//						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour&&n>0){
+						//							//Remove preferred neighbors from peerld list
+						//							n--;
+						//							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
+						//							if(index>0){
+						//								selected_neighbor = chokedNeighbors.get(index);
+						//							}
+						//							if(chokedNeighbors.size()!=0&&selected_neighbor>0){
+						//								preferredNeighbors.add(selected_neighbor);
+						//								chokedNeighbors.remove((Object)selected_neighbor);
+						//							}else{
+						//
+						//							}
+						//							peerProcess.logger.print("Timer: populating remaining spaces: "+preferredNeighbors.toString());
+						//						}
 						synchronized(this){
 							peerProcess.logger.print("Timer: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
 						}
@@ -322,248 +328,254 @@ public class Connect extends Thread {
 					break;
 
 				case 1:
-					//recvd unchoke - send a request for any piece you dont have, set choke flag to flase
-					peerProcess.logger.println("Received unchoke message from "+hmRecvd.peerID);
-					choked = false;
+					synchronized(this){
+						//recvd unchoke - send a request for any piece you dont have, set choke flag to flase
+						peerProcess.logger.println("Received unchoke message from "+hmRecvd.peerID);
+						choked = false;
 
-					//selecting randomly a chunk number from the dont have list only if any chunk is missing.
-					ArrayList<Integer> dontHaveChunkList_temp= new ArrayList<Integer>(dontHaveChunkList);
-					if(dontHaveChunkList_temp.size()>0) {
-						Random rand = new Random();
-						while(dontHaveChunkList_temp.size()>0) {
-							int chunkRequestedFor = dontHaveChunkList_temp.get(rand.nextInt(dontHaveChunkList_temp.size()));
-							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
-								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
-								peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
-								break;
+						//selecting randomly a chunk number from the dont have list only if any chunk is missing.
+						ArrayList<Integer> dontHaveChunkList_temp= new ArrayList<Integer>(dontHaveChunkList);
+						if(dontHaveChunkList_temp.size()>0) {
+							Random rand = new Random();
+							while(dontHaveChunkList_temp.size()>0) {
+								int chunkRequestedFor = dontHaveChunkList_temp.get(rand.nextInt(dontHaveChunkList_temp.size()));
+								if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
+									oos.writeObject(new ActualMessage("request",chunkRequestedFor));
+									peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
+									break;
+								}
+
+								//							peerProcess.logger.println("Attempting to remove element "+chunkRequestedFor+"having index"+dontHaveChunkList_temp.indexOf(chunkRequestedFor));
+								//							peerProcess.logger.println("the don't have chunk list is now"+dontHaveChunkList.toString());
+								dontHaveChunkList_temp.remove(dontHaveChunkList_temp.indexOf(chunkRequestedFor));
+
 							}
-
-							//							peerProcess.logger.println("Attempting to remove element "+chunkRequestedFor+"having index"+dontHaveChunkList_temp.indexOf(chunkRequestedFor));
-							//							peerProcess.logger.println("the don't have chunk list is now"+dontHaveChunkList.toString());
-							dontHaveChunkList_temp.remove(dontHaveChunkList_temp.indexOf(chunkRequestedFor));
-
 						}
+						//					peerProcess.logger.print("After copy and remove at top : "+dontHaveChunkList.toString());
+						break;
 					}
-					//					peerProcess.logger.print("After copy and remove at top : "+dontHaveChunkList.toString());
-					break;
-
 
 				case 2:
-					//recvd interested
-					peerProcess.logger.println("Case 2:Received interested message from "+hmRecvd.peerID);
-					//Update the interested list
-					interestedList.add(getRank(hmRecvd.peerID+"")-1);
-					peerProcess.logger.println("Interested List is "+interestedList.toString());
-					interestedList=removeDuplicates(interestedList);
-					peerProcess.logger.println("Interested List without dups is "+interestedList.toString());
-					//send unchoke after selecting neighbour from preferred Neighbor
+					synchronized(this){
+						//recvd interested
+						peerProcess.logger.println("Case 2:Received interested message from "+hmRecvd.peerID);
+						//Update the interested list
+						interestedList.add(getRank(hmRecvd.peerID+"")-1);
+						peerProcess.logger.println("Interested List is "+interestedList.toString());
+						interestedList=removeDuplicates(interestedList);
+						peerProcess.logger.println("Interested List without dups is "+interestedList.toString());
+						//send unchoke after selecting neighbour from preferred Neighbor
 
-					if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(hmRecvd.peerID)) {
-						unchokedList.add(hmRecvd.peerID);	
-						oos.writeObject(new ActualMessage("unchoke"));
-						peerProcess.logger.println("Sending unchoke to "+hmRecvd.peerID);
-					}else{
-						oos.writeObject(new ActualMessage("choke"));
-						peerProcess.logger.println("Sending choke to "+hmRecvd.peerID);
+						if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(hmRecvd.peerID)) {
+							unchokedList.add(hmRecvd.peerID);	
+							oos.writeObject(new ActualMessage("unchoke"));
+							peerProcess.logger.println("Sending unchoke to "+hmRecvd.peerID);
+						}else{
+							oos.writeObject(new ActualMessage("choke"));
+							peerProcess.logger.println("Sending choke to "+hmRecvd.peerID);
+						}
+
+						break;
+
 					}
-
-					break;
-
-
 				case 3:
-					//recvd not interested
-					peerProcess.logger.println("Received a not interested message from "+hmRecvd.peerID);
-					
-					//Remove if in interested list
-//					if(interestedList.contains(hmRecvd.peerID)){
+					synchronized(this){
+						//recvd not interested
+						peerProcess.logger.println("Received a not interested message from "+hmRecvd.peerID);
+
+						//Remove if in interested list
+						//					if(interestedList.contains(hmRecvd.peerID)){
 						interestedList.remove((Object)(getRank(hmRecvd.peerID+"")-1));
-//					}
-					if(unchokedList.contains(hmRecvd.peerID)){
-						unchokedList.remove(unchokedList.indexOf(hmRecvd.peerID));
+						//					}
+						if(unchokedList.contains(hmRecvd.peerID)){
+							unchokedList.remove(unchokedList.indexOf(hmRecvd.peerID));
+						}
+
+						break;
+
 					}
-
-					break;
-
-
 				case 4:
-					//recvd have message
-					//update your list
-					int chunkIndex = messageRcvd.getChunkid();
-					listOfPeersandChunks[hisRank-1][chunkIndex]=1;
-					peerProcess.logger.print("Received have message");
-					//send interested if you want that piece else not interested
+					synchronized(this){
+						//recvd have message
+						//update your list
+						int chunkIndex = messageRcvd.getChunkid();
+						listOfPeersandChunks[hisRank-1][chunkIndex]=1;
+						peerProcess.logger.print("Received have message");
+						//send interested if you want that piece else not interested
 
-					//					peerProcess.logger.print("DontHaveChunk list after recieving have is "+dontHaveChunkList.toString());
-					if(dontHaveChunkList.contains(chunkIndex)) {
-						ActualMessage interested = new ActualMessage("interested");
-						oos.writeObject(interested);
-						peerProcess.logger.print("Sent an interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
-					} else {
-						ActualMessage notinterested = new ActualMessage("notinterested");
-						oos.writeObject(notinterested);
-						peerProcess.logger.print("Sent a NOT interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
+						//					peerProcess.logger.print("DontHaveChunk list after recieving have is "+dontHaveChunkList.toString());
+						if(dontHaveChunkList.contains(chunkIndex)) {
+							ActualMessage interested = new ActualMessage("interested");
+							oos.writeObject(interested);
+							peerProcess.logger.print("Sent an interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
+						} else {
+							ActualMessage notinterested = new ActualMessage("notinterested");
+							oos.writeObject(notinterested);
+							peerProcess.logger.print("Sent a NOT interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
+						}
+						break;
 					}
-					break;
-
 
 				case 5:
-					//Recving bitfield message
-					peerProcess.logger.print("Inside bitfield - switch case.--------");
-					//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
-					//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
-					//Recving bitfield message
-					peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of type "
-							+messageRcvd.messageType +" size "
-							+ messageRcvd.messagePayload.length 
-							+ " from " +hmRecvd.peerID);
-					BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
-					myRecvBits = messageRcvd.toBitSet(messageRcvd.messagePayload);
+					synchronized(this){
+						//Recving bitfield message
+						peerProcess.logger.print("Inside bitfield - switch case.--------");
+						//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+						//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+						//Recving bitfield message
+						peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of type "
+								+messageRcvd.messageType +" size "
+								+ messageRcvd.messagePayload.length 
+								+ " from " +hmRecvd.peerID);
+						BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
+						myRecvBits = messageRcvd.toBitSet(messageRcvd.messagePayload);
 
-					String toPrint2 = new String();
-					for(int[] a:listOfPeersandChunks){
-						for(int b:a){
-							toPrint2+=b+",";
+						String toPrint2 = new String();
+						for(int[] a:listOfPeersandChunks){
+							for(int b:a){
+								toPrint2+=b+",";
+							}
+							toPrint2+="\n";
 						}
-						toPrint2+="\n";
-					}
-					//					peerProcess.logger.print("\n Peer and Chunk Info 1: \n"+toPrint2);	
+						//					peerProcess.logger.print("\n Peer and Chunk Info 1: \n"+toPrint2);	
 
-					//Updating the list of the chunks the other peer has
-					if(!myRecvBits.isEmpty())
-					{
-						hisRank = getRank(Integer.toString(hmRecvd.peerID));
-						for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
-							//							peerProcess.logger.print(" x "+x);	
-							listOfPeersandChunks[hisRank-1][x] =1;
-						}
-					}
-
-					String toPrint = new String();
-					for(int[] a:listOfPeersandChunks){
-						for(int b:a){
-							toPrint+=b+",";
-						}
-						toPrint+="\n";
-					}
-					//					peerProcess.logger.print("\n Peer and Chunk Info: \n"+toPrint);				
-
-					//updating your dont have list
-					for(int j=0;j<peerProcess.nofPieces;j++) {
-						if(listOfPeersandChunks[peerProcess.myRank-1][j]==0) {
-							dontHaveChunkList.add(j);
-						}
-
-					}
-
-					boolean sentInterested = false;
-					//send interested message if he has any piece you dont and only if you need atleast one piece
-					if(dontHaveChunkList.size()>0) {
-						Random rand2 = new Random();
-						//selecting randomly from the dont have list.
-						while(true) {
-							peerProcess.logger.println("Got bitfield, dontHAveChunkList is "+dontHaveChunkList.toString()+
-									" with size"+ dontHaveChunkList.size());
-							if(listOfPeersandChunks[hisRank-1][dontHaveChunkList.get(rand2.nextInt(dontHaveChunkList.size()))]==1) {
-								ActualMessage interested = new ActualMessage("interested");
-								oos.writeObject(interested);
-								sentInterested = true;
-								break;
+						//Updating the list of the chunks the other peer has
+						if(!myRecvBits.isEmpty())
+						{
+							hisRank = getRank(Integer.toString(hmRecvd.peerID));
+							for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
+								//							peerProcess.logger.print(" x "+x);	
+								listOfPeersandChunks[hisRank-1][x] =1;
 							}
 						}
 
-					}
-
-					if(!sentInterested) {
-						ActualMessage interested = new ActualMessage("notinterested");
-						oos.writeObject(interested);
-					}
-
-					break;
-
-
-				case 6:
-					//recvd request
-					int reqIndex = messageRcvd.getChunkid();
-					peerProcess.logger.print(hmRecvd.peerID+" requested for chunk "+reqIndex);
-					//if unchoked send piece
-					if(unchokedList.contains(hmRecvd.peerID)) {
-						if(peerProcess.haveFile==1) {
-							oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
-							peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
-						}
-						else {
-							peerProcess.logger.print("case 6: else The listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+reqIndex+"]="+listOfPeersandChunks[peerProcess.myRank-1][reqIndex]);
-							if(listOfPeersandChunks[peerProcess.myRank-1][reqIndex]==1){
-								File chunkFile = new File(fileDirectory+reqIndex+".part");
-								FileInputStream partInput = new FileInputStream(chunkFile);
-								peerProcess.logger.println("Length of chunk "+chunkFile.length()+"in ints "+(int)chunkFile.length() );
-								byte[] chunkb = new byte[(int)chunkFile.length()];
-								peerProcess.logger.println("Length of byte array"+ chunkb.length);
-								partInput.read(chunkb, 0, (int)chunkFile.length());
-								oos.writeObject(new ActualMessage(chunkb,reqIndex));
-								peerProcess.logger.print("Forwarding "+hmRecvd.peerID+" the chunk "+reqIndex);
+						String toPrint = new String();
+						for(int[] a:listOfPeersandChunks){
+							for(int b:a){
+								toPrint+=b+",";
 							}
+							toPrint+="\n";
+						}
+						//					peerProcess.logger.print("\n Peer and Chunk Info: \n"+toPrint);				
+
+						//updating your dont have list
+						for(int j=0;j<peerProcess.nofPieces;j++) {
+							if(listOfPeersandChunks[peerProcess.myRank-1][j]==0) {
+								dontHaveChunkList.add(j);
+							}
+
 						}
 
-					}
-					else {
-						peerProcess.logger.print(hmRecvd.peerID+" is choked and does not receive "+reqIndex + " from me.");
-					}
-
-					break;
-
-				case 7:
-
-					// recv piece 
-					chunkNumber = messageRcvd.getChunkid();
-					makePartFile(messageRcvd.getPayload(),chunkNumber);
-
-					peerProcess.logger.print("Got chunk "+chunkNumber);
-					peerProcess.logger.print("Dont have list: "+dontHaveChunkList.toString());
-
-					//Update download stats
-					//					downloadPieces.add(index, element
-					downloadPieces[hisRank-1]++;
-					//update matrix and dont have list
-					if (dontHaveChunkList.indexOf(chunkNumber)>=0){
-						dontHaveChunkList.remove(dontHaveChunkList.indexOf(chunkNumber));
-					}
-					listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]=1;
-					peerProcess.logger.print("case 7 :Updated the listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+chunkNumber+"]="+listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]);
-
-
-					//after recieving broadcast have
-					broadcastHave(chunkNumber);
-					haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
-
-					//put a logic to see if all pieces are complete
-
-					//check if unchoked and then request for next piece
-
-					if(!choked) {
-						//selecting randomly a chunk number from the dont have list only if any chunk is missing.
-						ArrayList<Integer> dontHaveChunkList_temp2= new ArrayList<Integer>(dontHaveChunkList);
-						if(dontHaveChunkList_temp2.size()>0) {
-							Random rand = new Random();
+						boolean sentInterested = false;
+						//send interested message if he has any piece you dont and only if you need atleast one piece
+						if(dontHaveChunkList.size()>0) {
+							Random rand2 = new Random();
+							//selecting randomly from the dont have list.
 							while(true) {
-								if(dontHaveChunkList_temp2.size()>0) {	
-									peerProcess.logger.print("Processing While in choked");
-									int chunkRequestedFor = dontHaveChunkList_temp2.get(rand.nextInt(dontHaveChunkList_temp2.size()));
-									if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
-										oos.writeObject(new ActualMessage("request",chunkRequestedFor));
-										peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
-										break;
-									}
-									dontHaveChunkList_temp2.remove(dontHaveChunkList_temp2.indexOf(chunkRequestedFor));
+								peerProcess.logger.println("Got bitfield, dontHAveChunkList is "+dontHaveChunkList.toString()+
+										" with size"+ dontHaveChunkList.size());
+								if(listOfPeersandChunks[hisRank-1][dontHaveChunkList.get(rand2.nextInt(dontHaveChunkList.size()))]==1) {
+									ActualMessage interested = new ActualMessage("interested");
+									oos.writeObject(interested);
+									sentInterested = true;
+									break;
 								}
 							}
+
 						}
-						//						peerProcess.logger.print("After copy and remove : "+dontHaveChunkList.toString());
+
+						if(!sentInterested) {
+							ActualMessage interested = new ActualMessage("notinterested");
+							oos.writeObject(interested);
+						}
+
+						break;
 					}
 
+				case 6:
+					synchronized(this){
+						//recvd request
+						int reqIndex = messageRcvd.getChunkid();
+						peerProcess.logger.print(hmRecvd.peerID+" requested for chunk "+reqIndex);
+						//if unchoked send piece
+						if(unchokedList.contains(hmRecvd.peerID)) {
+							if(peerProcess.haveFile==1) {
+								oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
+								peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
+							}
+							else {
+								peerProcess.logger.print("case 6: else The listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+reqIndex+"]="+listOfPeersandChunks[peerProcess.myRank-1][reqIndex]);
+								if(listOfPeersandChunks[peerProcess.myRank-1][reqIndex]==1){
+									File chunkFile = new File(fileDirectory+reqIndex+".part");
+									FileInputStream partInput = new FileInputStream(chunkFile);
+									peerProcess.logger.println("Length of chunk "+chunkFile.length()+"in ints "+(int)chunkFile.length() );
+									byte[] chunkb = new byte[(int)chunkFile.length()];
+									peerProcess.logger.println("Length of byte array"+ chunkb.length);
+									partInput.read(chunkb, 0, (int)chunkFile.length());
+									oos.writeObject(new ActualMessage(chunkb,reqIndex));
+									peerProcess.logger.print("Forwarding "+hmRecvd.peerID+" the chunk "+reqIndex);
+								}
+							}
 
-					break;
+						}
+						else {
+							peerProcess.logger.print(hmRecvd.peerID+" is choked and does not receive "+reqIndex + " from me.");
+						}
 
+						break;
+					}
+				case 7:
+					synchronized(this){
+						// recv piece 
+						chunkNumber = messageRcvd.getChunkid();
+						makePartFile(messageRcvd.getPayload(),chunkNumber);
+
+						peerProcess.logger.print("Got chunk "+chunkNumber);
+						peerProcess.logger.print("Dont have list: "+dontHaveChunkList.toString());
+
+						//Update download stats
+						//					downloadPieces.add(index, element
+						downloadPieces[hisRank-1]++;
+						//update matrix and dont have list
+						if (dontHaveChunkList.indexOf(chunkNumber)>=0){
+							dontHaveChunkList.remove(dontHaveChunkList.indexOf(chunkNumber));
+						}
+						listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]=1;
+						peerProcess.logger.print("case 7 :Updated the listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+chunkNumber+"]="+listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]);
+
+
+						//after recieving broadcast have
+						broadcastHave(chunkNumber);
+						haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
+
+						//put a logic to see if all pieces are complete
+
+						//check if unchoked and then request for next piece
+
+						if(!choked) {
+							//selecting randomly a chunk number from the dont have list only if any chunk is missing.
+							ArrayList<Integer> dontHaveChunkList_temp2= new ArrayList<Integer>(dontHaveChunkList);
+							if(dontHaveChunkList_temp2.size()>0) {
+								Random rand = new Random();
+								while(true) {
+									if(dontHaveChunkList_temp2.size()>0) {	
+										peerProcess.logger.print("Processing While in choked");
+										int chunkRequestedFor = dontHaveChunkList_temp2.get(rand.nextInt(dontHaveChunkList_temp2.size()));
+										if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
+											oos.writeObject(new ActualMessage("request",chunkRequestedFor));
+											peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
+											break;
+										}
+										dontHaveChunkList_temp2.remove(dontHaveChunkList_temp2.indexOf(chunkRequestedFor));
+									}
+								}
+							}
+							//						peerProcess.logger.print("After copy and remove : "+dontHaveChunkList.toString());
+						}
+
+
+						break;
+					}
 				}//end switch case
 
 
