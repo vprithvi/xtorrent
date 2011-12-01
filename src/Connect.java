@@ -17,6 +17,8 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 public class Connect extends Thread {
@@ -25,7 +27,7 @@ public class Connect extends Thread {
 	private ParallelStream oos = null;
 	private ParallelStream ois = null;
 	private static ParallelStream consolidated_oos[] = new ParallelStream[peerProcess.nofPeers];
-	private static int consolidated_index=0;
+//	private static int consolidated_index=0;
 
 	public int chunkNumber;
 
@@ -37,19 +39,26 @@ public class Connect extends Thread {
 	static ArrayList<Integer> haveChunkList = new ArrayList<Integer>();
 	static ArrayList<Integer> dontHaveChunkList = new ArrayList<Integer>();
 	static ArrayList<Integer> unchokedList = new ArrayList<Integer>();
-
+	static ArrayList<Integer> DownloadRate = new ArrayList<Integer>();
 	String fileDirectory=peerProcess.myID+"/";
 	String _host = null;
 	int _port = 0;
 	boolean isServer = false;
-	
-	
+
+	Timer chokeTimer = new Timer();
+
+
 	public Connect() {}
 
 	public Connect(ServerSocket serverSocket) {
 		server = serverSocket;
 		isServer = true;
-		
+//		chokeTimer.scheduleAtFixedRate(new TimerTask() {
+//	        public void run() {
+//	         //todo: download rate
+//	         
+//	        }
+//	    }, 100, peerProcess.unchokingInterval);
 		this.start();
 	}
 
@@ -84,24 +93,24 @@ public class Connect extends Thread {
 
 
 	public void run() {
-		
+
 		try {
 			if(isServer) {
 				socket = server.accept(); 
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
-		
+
 
 			} else {
 				sleep(500);
 				socket = new Socket(_host,_port);
 				oos= new ParallelStream(new ObjectOutputStream(socket.getOutputStream()));
 				ois= new ParallelStream(new ObjectInputStream(socket.getInputStream()));
-				
+
 
 			}
 
-			consolidated_oos[consolidated_index++]=oos;
+
 
 
 			//Update its list about itself
@@ -122,6 +131,8 @@ public class Connect extends Thread {
 			//Recving handshake message
 			HandshakeMessage hmRecvd = (HandshakeMessage)ois.readObject();
 			hisRank = getRank(Integer.toString(hmRecvd.peerID));
+			consolidated_oos[hisRank-1]=oos;
+			peerProcess.logger.print("set consolidated oos of "+ (hisRank-1));
 			if(isServer){
 				peerProcess.logger.print(peerProcess.myID+" is connected from "+hmRecvd.peerID);
 			} else {
@@ -163,7 +174,7 @@ public class Connect extends Thread {
 					//recvd unchoke - send a request for any piece you dont have, set choke flag to flase
 					peerProcess.logger.println("Received unchoke message from "+hmRecvd.peerID);
 					choked = false;
-					
+
 					//selecting randomly a chunk number from the dont have list only if any chunk is missing.
 					ArrayList<Integer> dontHaveChunkList_temp= new ArrayList<Integer>(dontHaveChunkList);
 					if(dontHaveChunkList_temp.size()>0) {
@@ -175,11 +186,11 @@ public class Connect extends Thread {
 								peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 								break;
 							}
-							
+
 							peerProcess.logger.println("Attempting to remove element "+chunkRequestedFor+"having index"+dontHaveChunkList_temp.indexOf(chunkRequestedFor));
-//							peerProcess.logger.println("the don't have chunk list is now"+dontHaveChunkList.toString());
+							//							peerProcess.logger.println("the don't have chunk list is now"+dontHaveChunkList.toString());
 							dontHaveChunkList_temp.remove(dontHaveChunkList_temp.indexOf(chunkRequestedFor));
-							
+
 						}
 					}
 					peerProcess.logger.print("After copy and remove at top : "+dontHaveChunkList.toString());
@@ -202,6 +213,10 @@ public class Connect extends Thread {
 				case 3:
 					//recvd not interested
 					peerProcess.logger.println("Received a not interested message from "+hmRecvd.peerID);
+					if(unchokedList.contains(hmRecvd.peerID)){
+						unchokedList.remove(unchokedList.indexOf(hmRecvd.peerID));
+					}
+					
 					break;
 
 
@@ -212,30 +227,30 @@ public class Connect extends Thread {
 					listOfPeersandChunks[hisRank-1][chunkIndex]=1;
 
 					//send interested if you want that piece else not interested
-					
-					peerProcess.logger.print("DontHaveChunk list after recieving have is "+dontHaveChunkList.toString());
-						if(dontHaveChunkList.contains(chunkIndex)) {
-							ActualMessage interested = new ActualMessage("interested");
-							oos.writeObject(interested);
-							peerProcess.logger.print("Sent an interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
-						} else {
-							ActualMessage notinterested = new ActualMessage("notinterested");
-							oos.writeObject(notinterested);
-							peerProcess.logger.print("Sent a NOT interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
-						}
+
+//					peerProcess.logger.print("DontHaveChunk list after recieving have is "+dontHaveChunkList.toString());
+					if(dontHaveChunkList.contains(chunkIndex)) {
+						ActualMessage interested = new ActualMessage("interested");
+						oos.writeObject(interested);
+						peerProcess.logger.print("Sent an interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
+					} else {
+						ActualMessage notinterested = new ActualMessage("notinterested");
+						oos.writeObject(notinterested);
+						peerProcess.logger.print("Sent a NOT interested message to"+hmRecvd.peerID+"for chunkid "+chunkIndex);
+					}
 					break;
 
 
 				case 5:
 					//Recving bitfield message
 					peerProcess.logger.print("Inside bitfield - switch case.--------");
-//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
-//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+					//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
+					//					ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
 					//Recving bitfield message
 					peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of type "
 							+messageRcvd.messageType +" size "
-					+ messageRcvd.messagePayload.length 
-					+ " from " +hmRecvd.peerID);
+							+ messageRcvd.messagePayload.length 
+							+ " from " +hmRecvd.peerID);
 					BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
 					myRecvBits = messageRcvd.toBitSet(messageRcvd.messagePayload);
 
@@ -253,7 +268,7 @@ public class Connect extends Thread {
 					{
 						hisRank = getRank(Integer.toString(hmRecvd.peerID));
 						for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
-							peerProcess.logger.print(" x "+x);	
+//							peerProcess.logger.print(" x "+x);	
 							listOfPeersandChunks[hisRank-1][x] =1;
 						}
 					}
@@ -274,7 +289,7 @@ public class Connect extends Thread {
 						}
 
 					}
-					
+
 					boolean sentInterested = false;
 					//send interested message if he has any piece you dont and only if you need atleast one piece
 					if(dontHaveChunkList.size()>0) {
@@ -297,7 +312,7 @@ public class Connect extends Thread {
 						ActualMessage interested = new ActualMessage("notinterested");
 						oos.writeObject(interested);
 					}
-					
+
 					break;
 
 
@@ -324,7 +339,7 @@ public class Connect extends Thread {
 								peerProcess.logger.print("Forwarding "+hmRecvd.peerID+" the chunk "+reqIndex);
 							}
 						}
-						
+
 					}
 					else {
 						peerProcess.logger.print(hmRecvd.peerID+" is choked and does not receive "+reqIndex + " from me.");
@@ -342,40 +357,42 @@ public class Connect extends Thread {
 					peerProcess.logger.print("Dont have list: "+dontHaveChunkList.toString());
 					//update matrix and dont have list
 					if (dontHaveChunkList.indexOf(chunkNumber)>=0){
-					dontHaveChunkList.remove(dontHaveChunkList.indexOf(chunkNumber));
+						dontHaveChunkList.remove(dontHaveChunkList.indexOf(chunkNumber));
 					}
 					listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]=1;
 					peerProcess.logger.print("case 7 :Updated the listOfPeersandChunks["+ (peerProcess.myRank-1) +"]["+chunkNumber+"]="+listOfPeersandChunks[peerProcess.myRank-1][chunkNumber]);
-					
+
 
 					//after recieving broadcast have
 					broadcastHave(chunkNumber);
 					haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
-					
+
 					//put a logic to see if all pieces are complete
-					
+
 					//check if unchoked and then request for next piece
-					
+
 					if(!choked) {
 						//selecting randomly a chunk number from the dont have list only if any chunk is missing.
 						ArrayList<Integer> dontHaveChunkList_temp2= new ArrayList<Integer>(dontHaveChunkList);
 						if(dontHaveChunkList_temp2.size()>0) {
 							Random rand = new Random();
 							while(true) {
-								peerProcess.logger.print("Processing While");
-								int chunkRequestedFor = dontHaveChunkList_temp2.get(rand.nextInt(dontHaveChunkList_temp2.size()));
-								if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
-									oos.writeObject(new ActualMessage("request",chunkRequestedFor));
-									peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
-									break;
+								if(dontHaveChunkList_temp2.size()>0) {	
+									peerProcess.logger.print("Processing While");
+									int chunkRequestedFor = dontHaveChunkList_temp2.get(rand.nextInt(dontHaveChunkList_temp2.size()));
+									if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
+										oos.writeObject(new ActualMessage("request",chunkRequestedFor));
+										peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
+										break;
+									}
+									dontHaveChunkList_temp2.remove(dontHaveChunkList_temp2.indexOf(chunkRequestedFor));
 								}
-								dontHaveChunkList_temp2.remove(dontHaveChunkList_temp2.indexOf(chunkRequestedFor));
 							}
 						}
 						peerProcess.logger.print("After copy and remove : "+dontHaveChunkList.toString());
 					}
-					
-					
+
+
 					break;
 
 				}//end switch case
@@ -479,14 +496,29 @@ public class Connect extends Thread {
 
 
 	}
-	
+
 	void broadcastHave(int chunkIndex){
-		for(int i =0; i<consolidated_index-1; i++){
+		peerProcess.logger.print("consolidated_oos.length"+consolidated_oos.length);
+		for(int i =0; i<consolidated_oos.length; i++){
+			
+			if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)){
+				peerProcess.logger.print("Sending have message to "+(i+1));
 			consolidated_oos[i].writeObject(new ActualMessage("have",chunkIndex));
 		}
+			}
 		peerProcess.logger.print("Broadcasted the have message");
 	}
 
+	void unchoke(int peerID, int toChoke){
+		
+		oos.writeObject(new ActualMessage("choke"));
+		
+		if((unchokedList.size()<peerProcess.nofPreferredNeighbour)) {
+			unchokedList.add(peerID);	
+			oos.writeObject(new ActualMessage("unchoke"));
+			peerProcess.logger.println("Timer :Sending unchoke to "+peerID);
+		}
+	}
 	private void printConnections(){
 		//		String toPrint = new String();
 		//		for(boolean[] a:isConnected){
