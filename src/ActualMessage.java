@@ -120,7 +120,18 @@ public class ActualMessage implements Serializable {
 	{
 		ActualMessage a = new ActualMessage(306);
 		System.out.println(a.messagePayload.length);
-		//System.out.println(a.messagePayload);
+		BitSet myRecvBits = new BitSet(306);
+		myRecvBits = a.toBitSet(a.messagePayload);
+						if(!myRecvBits.isEmpty())
+				{
+					//hisRank = getRank(Integer.toString(hmRecvd.peerID));
+					for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
+						System.out.println(" x "+x);	
+						//listOfPeersandChunks[hisRank-1][x] =1;
+					}
+				}
+		
+						//System.out.println(a.messagePayload);
 		
 		BitSet mb = new BitSet(10);
 		mb.set(2);

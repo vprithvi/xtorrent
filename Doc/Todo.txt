@@ -1,14 +1,13 @@
-
 To do:
-Choke flag.
+Choke flag. ave message/Request should be stopped after choke.
+Logic to detect completion of all peers.
+clone arraylist to improve efficiency.
 Choke, Unchoke threads and intervals for setting it.
 Initiate server sequence once a peer has atleast one chunk.
-
-
-Test:
-
+H
 
 
 Done :
 Append index/chunk number to the message payload aloong with the chunk for "piece".
 Request and have message constructor to contain chunknumber in message payload. (Bytebuffer should solve this)
+Broadcast have.

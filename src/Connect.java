@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
@@ -30,7 +31,7 @@ public class Connect extends Thread {
 
 	public boolean complete = false;
 	public boolean haveChunk = false;
-	public boolean choked = true;
+	public static boolean choked = true;
 	int hisRank;
 	public static int[][] listOfPeersandChunks = new int[peerProcess.nofPeers][peerProcess.nofPieces]; 
 	static ArrayList<Integer> haveChunkList = new ArrayList<Integer>();
@@ -134,7 +135,7 @@ public class Connect extends Thread {
 			} else {
 				ActualMessage bitfieldMessage = (ActualMessage) ois.readObject();
 				//Recving bitfield message
-				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessage.messagePayload.length + " from " +hm.peerID);
+				peerProcess.logger.print(peerProcess.myID + " recieved bitfield message of size "+ bitfieldMessage.messagePayload.length + " from " +hmRecvd.peerID);
 				BitSet myRecvBits = new BitSet(peerProcess.nofPieces);
 				myRecvBits = bitfieldMessage.toBitSet(bitfieldMessage.messagePayload);
 
@@ -150,13 +151,10 @@ public class Connect extends Thread {
 				//Updating the list of the chunks the other peer has
 				if(!myRecvBits.isEmpty())
 				{
-					int maxIndex = peerProcess.nofPieces;
-					int index=0, firstBit=-1;
-					while(index<maxIndex && index!=firstBit) {
-						int x = myRecvBits.nextSetBit(index);
+					hisRank = getRank(Integer.toString(hmRecvd.peerID));
+					for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
+						peerProcess.logger.print(" x "+x);	
 						listOfPeersandChunks[hisRank-1][x] =1;
-						index=x+1;
-						firstBit=x;
 					}
 				}
 
@@ -221,25 +219,31 @@ public class Connect extends Thread {
 				switch(messageRcvd.messageType) {
 				case 0:
 					//choke
-					//do nothing
+					//set choke flag
+					choked = true;
 					peerProcess.logger.print(peerProcess.myID+" is choked by "+hmRecvd.peerID);
 					break;
 
 				case 1:
-					//recvd unchoke - send a request for any piece you dont have
+					//recvd unchoke - send a request for any piece you dont have, set choke flag to flase
 					peerProcess.logger.println("Received unchoke message from "+hmRecvd.peerID);
+					choked = false;
+					
 					//selecting randomly a chunk number from the dont have list only if any chunk is missing.
-					if(dontHaveChunkList.size()>0) {
+					ArrayList<Integer> dontHaveChunkList_temp= new ArrayList<Integer>(dontHaveChunkList);
+					if(dontHaveChunkList_temp.size()>0) {
 						Random rand = new Random();
 						while(true) {
-							int chunkRequestedFor = dontHaveChunkList.get(rand.nextInt(dontHaveChunkList.size()));
+							int chunkRequestedFor = dontHaveChunkList_temp.get(rand.nextInt(dontHaveChunkList_temp.size()));
 							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
 								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
 								peerProcess.logger.println("Received unchoke and sending request to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 								break;
 							}
+							dontHaveChunkList_temp.remove(chunkRequestedFor);
 						}
 					}
+					peerProcess.logger.print("After copy and remove at top : "+dontHaveChunkList.toString());
 					break;
 
 
@@ -320,23 +324,31 @@ public class Connect extends Thread {
 
 					//after recieving broadcast have
 					broadcastHave(chunkNumber);
-//					oos.writeObject(new ActualMessage("have",chunkNumber));
 					haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
-					//complete = true;
-					//selecting randomly a chunk number from the dont have list only if any chunk is missing.
-					if(dontHaveChunkList.size()>0) {
-						Random rand = new Random();
-						while(true) {
-							peerProcess.logger.print("Processing While");
-							int chunkRequestedFor = dontHaveChunkList.get(rand.nextInt(dontHaveChunkList.size()));
-							if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
-								oos.writeObject(new ActualMessage("request",chunkRequestedFor));
-								peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
-								break;
+					
+					//put a logic to see if all pieces are complete
+					
+					//check if unchoked and then request for next piece
+					
+					if(!choked) {
+						//selecting randomly a chunk number from the dont have list only if any chunk is missing.
+						ArrayList<Integer> dontHaveChunkList_temp2= new ArrayList<Integer>(dontHaveChunkList);
+						if(dontHaveChunkList_temp2.size()>0) {
+							Random rand = new Random();
+							while(true) {
+								peerProcess.logger.print("Processing While");
+								int chunkRequestedFor = dontHaveChunkList_temp2.get(rand.nextInt(dontHaveChunkList_temp2.size()));
+								if(listOfPeersandChunks[hisRank-1][chunkRequestedFor]==1) {
+									oos.writeObject(new ActualMessage("request",chunkRequestedFor));
+									peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
+									break;
+								}
+								dontHaveChunkList_temp2.remove(chunkRequestedFor);
 							}
-							peerProcess.logger.print("Should not come here");
 						}
+						peerProcess.logger.print("After copy and remove : "+dontHaveChunkList.toString());
 					}
+					
 					
 					break;
 
