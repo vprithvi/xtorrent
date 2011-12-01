@@ -20,32 +20,37 @@ class WriteLog{
 	}
 
 	public void print(String msg){
-		if(msg.contains("onnect")){
-			msg = msg.toUpperCase();
-			msg = ""+msg+"";
+		synchronized(this){
+			if(msg.contains("onnect")){
+				msg = msg.toUpperCase();
+				msg = ""+msg+"";
+			}
+			out.flush();
+			out.println(TimeGen.now()+" "+peerProcess.myID+"::"+msg);
+			out.flush();
 		}
-		out.flush();
-		out.println(TimeGen.now()+" "+peerProcess.myID+"::"+msg);
-		out.flush();
 	}
 
-    public void print(Throwable t)
-    {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw, true);
-        t.printStackTrace(pw);
-        pw.flush();
-        sw.flush();
-        print(sw.toString());
-    }
-    
+	public void print(Throwable t){
+		synchronized(this){
+
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw, true);
+			t.printStackTrace(pw);
+			pw.flush();
+			sw.flush();
+			print(sw.toString());
+		}
+	}
+
 	public void println(String msg){
-//		out.flush();
-//		out.println(TimeGen.now()+":"+msg);
-//		out.flush();
-//		out.flush();
-//		out.print(msg);
-//		out.flush();
+		//		out.flush();
+		//		out.println(TimeGen.now()+":"+msg);
+		//		out.flush();
+		//		out.flush();
+		//		out.print(msg);
+		//		out.flush();
+
 		print(msg);
 	}
 	public void close(){
