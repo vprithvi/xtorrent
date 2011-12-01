@@ -201,15 +201,15 @@ public class Connect extends Thread {
 								
 								//								peerProcess.logger.println();
 								//								peerProcess.logger.print("Timer outside if: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
-								if(!preferredNeighbors.contains((max_index+1))){
+								if(!preferredNeighbors.contains((max_index))){
 									//To ensure that the same peer has not been selected after reseting the download rate.
-									preferredNeighbors.add(max_index + 1);
-									peerProcess.logger.print("Timer: Added "+(max_index+1));
+									preferredNeighbors.add(max_index);
+									peerProcess.logger.print("Timer: Added "+(max_index));
 
 								}
 
 								//Remove if I added myself and reiterate
-								if(preferredNeighbors.contains(peerProcess.myRank)){
+								if(preferredNeighbors.contains(peerProcess.myRank-1)){
 //									preferredNeighbors.remove(preferredNeighbors.indexOf(peerProcess.myRank));
 									peerProcess.logger.print("Timer: contain myself Should not come here");
 								}
