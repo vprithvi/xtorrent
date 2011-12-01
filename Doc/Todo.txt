@@ -4,8 +4,8 @@ Logic to detect completion of all peers.
 clone arraylist to improve efficiency.
 Choke, Unchoke threads and intervals for setting it.
 Initiate server sequence once a peer has atleast one chunk.
-H
 
+Write code for sending choke on recv interested.
 
 Done :
 Append index/chunk number to the message payload aloong with the chunk for "piece".
