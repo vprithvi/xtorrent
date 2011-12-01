@@ -52,6 +52,7 @@ public class Connect extends Thread {
 	static List<Integer> preferredNeighbors = Collections.synchronizedList(new ArrayList<Integer>());
 	static List<Integer> chokedNeighbors = Collections.synchronizedList(new ArrayList<Integer>());
 	static List<Integer> interestedList = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> optimisticUnchokeList = Collections.synchronizedList(new ArrayList<Integer>());
 //	List<Integer> a = Collections.synchronizedList(new ArrayList<Integer>());
 	static int[] downloadPieces= new int [peerProcess.nofPeers];
 	String fileDirectory=peerProcess.myID+"/";
@@ -60,7 +61,7 @@ public class Connect extends Thread {
 	boolean isServer = false;
 
 	Timer chokeTimer = new Timer();
-
+	Timer optChokeTimer = new Timer();
 
 	public Connect() {}
 
@@ -273,71 +274,7 @@ public class Connect extends Thread {
 							}
 
 							
-//							
-//							//int max = Integer.MIN_VALUE, max_index = 0;
-//							//No of download pieces is rate
-//							for (int i = 0; i < downloadPieces.length; i++) {
-//								if(!interestedList.contains(i)){
-////									downloadPieces[i]=Integer.MIN_VALUE;
-//								
-//								if (max <= downloadPieces[i]) {
-//									max = downloadPieces[i];
-//									max_index = i;
-//
-//								}
-//								}
-//							}
-//							//remove the peer with max rate and unchoke 
-//							downloadPieces[max_index] = Integer.MIN_VALUE;
-//							//SEND UNCHOKE
-//
-//							synchronized(this){
-//
-//								//								peerProcess.logger.println();
-//								//								peerProcess.logger.print("Timer outside if: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
-//								if(!preferredNeighbors.contains((max_index))){
-//									//To ensure that the same peer has not been selected after reseting the download rate.
-//									preferredNeighbors.add(max_index);
-//									peerProcess.logger.print("Timer: Added "+(max_index));
-//
-//								}
-//
-//								//Remove if I added myself and reiterate
-//								if(preferredNeighbors.contains(peerProcess.myRank-1)){
-//																		preferredNeighbors.remove((Object)(peerProcess.myRank-1));
-//									peerProcess.logger.print("Timer: contain myself Should not come here");
-//								}
-//							}//synch
-						}//while
-						//
-						//						chokedNeighbors.add(1024);
-						//						chokedNeighbors.clear();
-						//						chokedNeighbors.addAll(rankList);
-						//						chokedNeighbors=removeDuplicates(chokedNeighbors);
-						//						preferredNeighbors=removeDuplicates(preferredNeighbors);
-						//						peerProcess.logger.print("Timer: Choked neighbor list (peeridlist): "+chokedNeighbors.toString());
-						//
-						//						chokedNeighbors.remove((Object)peerProcess.myRank);
-						//						chokedNeighbors.removeAll(preferredNeighbors);
-						//
-						//
-						//						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
-						//						int n=10;
-						//						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour&&n>0){
-						//							//Remove preferred neighbors from peerld list
-						//							n--;
-						//							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
-						//							if(index>0){
-						//								selected_neighbor = chokedNeighbors.get(index);
-						//							}
-						//							if(chokedNeighbors.size()!=0&&selected_neighbor>0){
-						//								preferredNeighbors.add(selected_neighbor);
-						//								chokedNeighbors.remove((Object)selected_neighbor);
-						//							}else{
-						//
-						//							}
-						//							peerProcess.logger.print("Timer: populating remaining spaces: "+preferredNeighbors.toString());
-						//						}
+					}
 						synchronized(this){
 							peerProcess.logger.print("Timer: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
 						}
@@ -357,6 +294,33 @@ public class Connect extends Thread {
 
 			chokeTimer.scheduleAtFixedRate(new unchoker(), 1, peerProcess.unchokingInterval*1000);
 
+			
+			//Optimistic unchoking
+			
+			
+			class optimisticUnchoker extends TimerTask{
+
+				@Override
+				public void run() {
+					
+					for(int i = new Random().nextInt(consolidated_oos.length); i<consolidated_oos.length; i++){
+						if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)&&i>=0){
+							peerProcess.logger.print("Timer: Sending optimistic unchoke to "+(i+1));
+							consolidated_oos[i].writeObject(new ActualMessage("unchoke"));
+							if(optimisticUnchokeList.size()>0) {
+								optimisticUnchokeList.clear();
+							}
+							optimisticUnchokeList.add(i);
+							break;
+						}
+					}
+					
+					
+					
+				}
+				
+			}
+			optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval);
 
 			//Update its list about itself
 			//			peerProcess.logger.print("My Rank is " +peerProcess.myRank);
@@ -589,7 +553,7 @@ public class Connect extends Thread {
 						int reqIndex = messageRcvd.getChunkid();
 						peerProcess.logger.print(hmRecvd.peerID+" requested for chunk "+reqIndex);
 						//if unchoked send piece
-						if(unchokedList.contains((getRank(hmRecvd.peerID)-1))) {
+						if(optimisticUnchokeList.contains(getRank(hmRecvd.peerID)-1)||unchokedList.contains((getRank(hmRecvd.peerID)-1))) {
 							if(peerProcess.haveFile==1) {
 								oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
 								peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
