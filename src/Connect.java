@@ -158,6 +158,28 @@ public class Connect extends Thread {
 		}
 		return rank;
 	}
+	
+	public int getRank(int peerId) {
+		int rank=0;
+		String st;
+		try {
+			BufferedReader in = new BufferedReader(new FileReader("PeerInfo.cfg"));
+			int count=1; //to calculate myrank
+			while((st = in.readLine()) != null) {
+
+				String[] tokens = st.split("\\s+");
+				if(peerId == Integer.parseInt(tokens[0])){
+					rank = count; 
+				}
+				count++;
+			}
+			in.close();
+		}
+		catch (Exception ex) {
+			peerProcess.logger.println(ex.toString());
+		}
+		return rank;
+	}
 
 
 	public void run() {
@@ -223,7 +245,33 @@ public class Connect extends Thread {
 							
 							
 							//Replace unchokelist with prefne
-							//Send choke and unchoke corres.
+							if(unchokedList.size()>0) {
+								
+								//send choke to unchoke list and clear
+								//Sending choke
+								for(int i =0; i<consolidated_oos.length; i++){
+
+									if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)){
+										peerProcess.logger.print("Timer: Sending choke to "+(i+1)+" who was previously on Unchoke mode");
+										consolidated_oos[i].writeObject(new ActualMessage("choke"));
+									}
+								}
+								
+								unchokedList.clear();
+								unchokedList.addAll(preferredNeighbors);
+								
+								//Sending unchoke
+								for(int i =0; i<consolidated_oos.length; i++){
+
+									if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)){
+										peerProcess.logger.print("Timer: Sending unchoke to "+(i+1));
+										consolidated_oos[i].writeObject(new ActualMessage("unchoke"));
+									}
+								}
+								
+								
+							}
+
 							
 //							
 //							//int max = Integer.MIN_VALUE, max_index = 0;
@@ -406,12 +454,12 @@ public class Connect extends Thread {
 						peerProcess.logger.println("Interested List without dups is "+interestedList.toString());
 						//send unchoke after selecting neighbour from preferred Neighbor
 
-						if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(hmRecvd.peerID)) {
-							unchokedList.add(hmRecvd.peerID);	
+						if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(getRank(hmRecvd.peerID)-1)) {
+							unchokedList.add(getRank(hmRecvd.peerID)-1);	
 							oos.writeObject(new ActualMessage("unchoke"));
 							peerProcess.logger.println("Sending unchoke to "+hmRecvd.peerID);
 						}else{
-							chokedList.add(hmRecvd.peerID);
+							chokedList.add((getRank(hmRecvd.peerID)-1));
 							oos.writeObject(new ActualMessage("choke"));
 							peerProcess.logger.println("Sending choke to "+hmRecvd.peerID);
 						}
@@ -425,12 +473,12 @@ public class Connect extends Thread {
 						peerProcess.logger.println("Received a not interested message from "+hmRecvd.peerID);
 
 						//Remove if in interested list
-						interestedList.remove((Object)(getRank(hmRecvd.peerID+"")-1));
-						if(unchokedList.contains(hmRecvd.peerID)){
-							unchokedList.remove(unchokedList.indexOf(hmRecvd.peerID));
+						interestedList.remove((Object)(getRank(hmRecvd.peerID)-1));
+						if(unchokedList.contains(getRank(hmRecvd.peerID)-1)){
+							unchokedList.remove((Object)(getRank(hmRecvd.peerID)-1));
 						}
 						else {
-							chokedList.add(hmRecvd.peerID);
+							chokedList.add((getRank(hmRecvd.peerID)-1));
 						}
 
 						break;
@@ -540,7 +588,7 @@ public class Connect extends Thread {
 						int reqIndex = messageRcvd.getChunkid();
 						peerProcess.logger.print(hmRecvd.peerID+" requested for chunk "+reqIndex);
 						//if unchoked send piece
-						if(unchokedList.contains(hmRecvd.peerID)) {
+						if(unchokedList.contains((getRank(hmRecvd.peerID)-1))) {
 							if(peerProcess.haveFile==1) {
 								oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
 								peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
@@ -729,43 +777,6 @@ public class Connect extends Thread {
 			}
 		}
 		peerProcess.logger.print("Broadcasted the have message");
-	}
-
-	final void  unchoke(int peerID, int toChoke){
-		//		peerProcess.logger.print("Timer: Stuck nowhere"+toChoke);
-		boolean willExecute=false;
-		if(null!=consolidated_oos[toChoke]){
-
-			consolidated_oos[getRank(toChoke+"")].writeObject(new ActualMessage("choke"));
-			peerProcess.logger.println("Timer :choked  "+toChoke);
-			if(unchokedList.contains(toChoke)){
-				unchokedList.remove(toChoke);}
-			willExecute=true;
-		}else
-
-		{peerProcess.logger.print("Timer: consolidatedoos is null for"+toChoke);
-		}
-		if((unchokedList.size()<peerProcess.nofPreferredNeighbour)&&willExecute) {
-			unchokedList.add(peerID);	
-			oos.writeObject(new ActualMessage("unchoke"));
-			peerProcess.logger.println("Timer :Sending unchoke to "+peerID);
-
-		}
-
-	}
-
-	void updateDownloadRate(){
-		//		 static ArrayList<Integer> oldDownloadRate = new ArrayList<Integer>();
-	}
-	private void printConnections(){
-		//		String toPrint = new String();
-		//		for(boolean[] a:isConnected){
-		//			for(boolean b:a){
-		//				toPrint+=b+",";
-		//			}
-		//			toPrint+="\n";
-		//		}
-		//		peerProcess.logger.print("\nisConnected\n"+toPrint);
 	}
 
 }
