@@ -18,6 +18,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -41,16 +42,17 @@ public class Connect extends Thread {
 	public static boolean choked = true;
 	int hisRank;
 	public static int[][] listOfPeersandChunks = new int[peerProcess.nofPeers][peerProcess.nofPieces]; 
-	static ArrayList<Integer> haveChunkList = new ArrayList<Integer>();
-	static ArrayList<Integer> dontHaveChunkList = new ArrayList<Integer>();
-	static ArrayList<Integer> unchokedList = new ArrayList<Integer>();
-	static ArrayList<Integer> chokedList = new ArrayList<Integer>();
-	static ArrayList<Integer> downloadRate = new ArrayList<Integer>();
-	static ArrayList<Integer> peerIDList = new ArrayList<Integer>();
-	static ArrayList<Integer> rankList= new ArrayList<Integer>();
-	static ArrayList<Integer> preferredNeighbors = new ArrayList<Integer>();
-	static ArrayList<Integer> chokedNeighbors = new ArrayList<Integer>();
-	static ArrayList<Integer> interestedList = new ArrayList<Integer>();
+	static List<Integer> haveChunkList = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> dontHaveChunkList = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> unchokedList = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> chokedList = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> downloadRate = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> peerIDList = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> rankList= Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> preferredNeighbors = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> chokedNeighbors = Collections.synchronizedList(new ArrayList<Integer>());
+	static List<Integer> interestedList = Collections.synchronizedList(new ArrayList<Integer>());
+//	List<Integer> a = Collections.synchronizedList(new ArrayList<Integer>());
 	static int[] downloadPieces= new int [peerProcess.nofPeers];
 	String fileDirectory=peerProcess.myID+"/";
 	String _host = null;
@@ -88,6 +90,18 @@ public class Connect extends Thread {
 //		}
 	}
 
+	synchronized public List<Integer> removeDuplicates(List<Integer> a){
+//		synchronized (this) {
+			//		ArrayList al = new ArrayList();
+			// add elements to al, including duplicates
+			HashSet<Integer> hs = new HashSet<Integer>();
+			hs.addAll(a);
+			a.clear();
+			a.addAll(hs);
+			return a;
+//		}
+	}
+	
 	public void generatePeerIDList() {
 		String st;
 		try {
