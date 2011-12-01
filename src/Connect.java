@@ -46,6 +46,7 @@ public class Connect extends Thread {
 	static ArrayList<Integer> rankList= new ArrayList<Integer>();
 	static ArrayList<Integer> preferredNeighbors = new ArrayList<Integer>();
 	static ArrayList<Integer> chokedNeighbors = new ArrayList<Integer>();
+	static ArrayList<Integer> interestedList = new ArrayList<Integer>();
 	static int[] downloadPieces= new int [peerProcess.nofPeers];
 	String fileDirectory=peerProcess.myID+"/";
 	String _host = null;
@@ -173,16 +174,20 @@ public class Connect extends Thread {
 						int numberToUnchoke = peerProcess.nofPreferredNeighbour;
 						while (numberToUnchoke > 0) {
 							numberToUnchoke--;
-							int max = Integer.MIN_VALUE, max_index = 0;
+							int max = -100000, max_index = 0;
 							//No of download pieces is rate
 							for (int i = 0; i < downloadPieces.length; i++) {
+								if(!interestedList.contains(getRank(i+""))){
+									downloadPieces[i]=Integer.MIN_VALUE;
+								}
 								if (max < downloadPieces[i]) {
 									max = downloadPieces[i];
 									max_index = i;
+
 								}
 							}
 							//remove the peer with max rate and unchoke 
-							downloadPieces[max_index] = Integer.MIN_VALUE;
+							downloadPieces[max_index] = -10000;
 							synchronized(this){
 								//								peerProcess.logger.println();
 								//								peerProcess.logger.print("Timer outside if: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
@@ -211,10 +216,10 @@ public class Connect extends Thread {
 
 
 						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
-
-						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour){
+						int n=10;
+						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour&&n>0){
 							//Remove preferred neighbors from peerld list
-							
+							n--;
 							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
 							if(index>0){
 								selected_neighbor = chokedNeighbors.get(index);
@@ -334,6 +339,10 @@ public class Connect extends Thread {
 				case 2:
 					//recvd interested
 					peerProcess.logger.println("Received interested message from "+hmRecvd.peerID);
+					//Update the interested list
+					interestedList.add(hmRecvd.peerID);
+					interestedList=removeDuplicates(interestedList);
+					
 					//send unchoke after selecting neighbour from preferred Neighbor
 
 					if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(hmRecvd.peerID)) {
@@ -351,6 +360,11 @@ public class Connect extends Thread {
 				case 3:
 					//recvd not interested
 					peerProcess.logger.println("Received a not interested message from "+hmRecvd.peerID);
+					
+					//Remove if in interested list
+//					if(interestedList.contains(hmRecvd.peerID)){
+						interestedList.remove((Object)hmRecvd.peerID);
+//					}
 					if(unchokedList.contains(hmRecvd.peerID)){
 						unchokedList.remove(unchokedList.indexOf(hmRecvd.peerID));
 					}
