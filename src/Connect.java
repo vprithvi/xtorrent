@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -42,7 +43,9 @@ public class Connect extends Thread {
 	static ArrayList<Integer> unchokedList = new ArrayList<Integer>();
 	static ArrayList<Integer> downloadRate = new ArrayList<Integer>();
 	static ArrayList<Integer> peerIDList = new ArrayList<Integer>();
+	static ArrayList<Integer> rankList= new ArrayList<Integer>();
 	static ArrayList<Integer> preferredNeighbors = new ArrayList<Integer>();
+	static ArrayList<Integer> chokedNeighbors = new ArrayList<Integer>();
 	static int[] downloadPieces= new int [peerProcess.nofPeers];
 	String fileDirectory=peerProcess.myID+"/";
 	String _host = null;
@@ -68,6 +71,16 @@ public class Connect extends Thread {
 		this.start();
 	}
 
+	public ArrayList<Integer> removeDuplicates(ArrayList<Integer> a){
+//		ArrayList al = new ArrayList();
+		// add elements to al, including duplicates
+		HashSet<Integer> hs = new HashSet<Integer>();
+		hs.addAll(a);
+		a.clear();
+		a.addAll(hs);
+		return a;
+	}
+	
 	public void generatePeerIDList() {
 		String st;
 		try {
@@ -84,6 +97,25 @@ public class Connect extends Thread {
 		}
 
 	}	
+
+	public void generateRankList() {
+		String st;
+		try {
+			BufferedReader in = new BufferedReader(new FileReader("PeerInfo.cfg"));
+			while((st = in.readLine()) != null) {
+
+				String[] tokens = st.split("\\s+");
+				if(!rankList.contains(getRank(tokens[0]))){
+					rankList.add(getRank(tokens[0]));
+				}
+			}
+			in.close();
+		}
+		catch (Exception ex) {
+			peerProcess.logger.println(ex.toString());
+		}
+
+	}
 	public int getRank(String peerId) {
 		int rank=0;
 		String st;
@@ -124,9 +156,10 @@ public class Connect extends Thread {
 
 
 			}
+
 			//Generate peerIDlist
 			generatePeerIDList();
-
+			generateRankList();
 			//Unchoke thread
 
 			class unchoker extends TimerTask{
@@ -135,12 +168,12 @@ public class Connect extends Thread {
 				public void run() {
 					try {
 						//Reset the preferred Neighbors list
-
+						preferredNeighbors.clear();
 
 						int numberToUnchoke = peerProcess.nofPreferredNeighbour;
 						while (numberToUnchoke > 0) {
 							numberToUnchoke--;
-							int max = 0, max_index = 0;
+							int max = Integer.MIN_VALUE, max_index = 0;
 							//No of download pieces is rate
 							for (int i = 0; i < downloadPieces.length; i++) {
 								if (max < downloadPieces[i]) {
@@ -149,54 +182,61 @@ public class Connect extends Thread {
 								}
 							}
 							//remove the peer with max rate and unchoke 
-							downloadPieces[max_index] = 0;
-							preferredNeighbors.add(max_index + 1);
-						}
-						peerProcess.logger.print("Timer: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
+							downloadPieces[max_index] = Integer.MIN_VALUE;
+							synchronized(this){
+								//								peerProcess.logger.println();
+								//								peerProcess.logger.print("Timer outside if: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
+								if(!preferredNeighbors.contains((max_index+1))){
+									//To ensure that the same peer has not been selected after reseting the download rate.
+									preferredNeighbors.add(max_index + 1);
+									peerProcess.logger.print("Timer: Added "+(max_index+1));
 
+								}
+
+								//Remove if I added myself and reiterate
+								if(preferredNeighbors.contains(peerProcess.myRank)){
+									preferredNeighbors.remove(preferredNeighbors.indexOf(peerProcess.myRank));
+								}
+							}//synch
+						}//while
+
+						chokedNeighbors.clear();
+						chokedNeighbors.addAll(rankList);
+						chokedNeighbors=removeDuplicates(chokedNeighbors);
+						preferredNeighbors=removeDuplicates(preferredNeighbors);
+						peerProcess.logger.print("Timer: Choked neighbor list (peeridlist): "+chokedNeighbors.toString());
+
+						chokedNeighbors.remove((Object)peerProcess.myRank);
+						chokedNeighbors.removeAll(preferredNeighbors);
+
+
+						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
+
+						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour){
+							//Remove preferred neighbors from peerld list
+							
+							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
+							if(index>0){
+								selected_neighbor = chokedNeighbors.get(index);
+							}
+							if(chokedNeighbors.size()!=0&&selected_neighbor>0){
+								preferredNeighbors.add(selected_neighbor);
+								chokedNeighbors.remove((Object)selected_neighbor);
+							}else{
+
+							}
+							peerProcess.logger.print("Timer: populating remaining spaces: "+preferredNeighbors.toString());
+						}
+						synchronized(this){
+							peerProcess.logger.print("Timer: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
+						}
 						//Reset the download rate
 						for( int b:downloadPieces){
 							b=0;
-							peerProcess.logger.println("The value of b is "+b);
+							//							peerProcess.logger.println("The value of b is "+b);
 						}
 
-						//Unchoke only people who are interested in data
 
-						//Collections.sort(list);
-
-						//						peerProcess.logger.print("Timer Fired");
-						//todo: download rate
-						//						unchoke(6,2);
-						//						int t=peerProcess.nofPeers;
-						//						while(t>0)
-						//						{
-						//							if(!(peerIDList.size()>0&&unchokedList.size()>0)){
-						//								break;
-						//							}
-						//							int random_peerID= peerIDList.get(new Random().nextInt(peerIDList.size()));
-						//							int toChoke= unchokedList.indexOf(new Random().nextInt(unchokedList.size()));
-						//							if(!(random_peerID>0&&toChoke>0)){
-						//								break;
-						//							}
-						//							//						peerProcess.logger.print("Timer Peer");
-						//							if(!unchokedList.contains(random_peerID))
-						//							{
-						//								//								peerProcess.logger.print("Timer going to call unchoke");
-						//
-						//
-						//
-						//								//									unchoke(6,1);
-						//
-						//
-						//								//								peerProcess.logger.print("Timer finished unchoke");
-						//								break;
-						//							};
-						//							t--;
-						//
-						//						}
-
-						//					unchoke(3,5);
-						//					peerProcess.logger.print("Timer finished unchoke");
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						peerProcess.logger.print(e);
@@ -295,7 +335,7 @@ public class Connect extends Thread {
 					//recvd interested
 					peerProcess.logger.println("Received interested message from "+hmRecvd.peerID);
 					//send unchoke after selecting neighbour from preferred Neighbor
-					
+
 					if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(hmRecvd.peerID)) {
 						unchokedList.add(hmRecvd.peerID);	
 						oos.writeObject(new ActualMessage("unchoke"));
