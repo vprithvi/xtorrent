@@ -199,8 +199,9 @@ public class Connect extends Thread {
 								
 							}
 							//once peer is selected from list, remove him and add him to the preferredlist
+							preferredNeighbors.add(interestedList.get(maxIndex));
 							interestedList.remove(maxIndex);
-							preferredNeighbors.add(maxIndex);
+							
 							
 							//Replace unchokelist with prefne
 							//Send choke and unchoke corres.
