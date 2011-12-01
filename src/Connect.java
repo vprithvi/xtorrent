@@ -172,9 +172,16 @@ public class Connect extends Thread {
 						preferredNeighbors.clear();
 						peerProcess.logger.print("Timer: interested List"+interestedList.toString());
 						int numberToUnchoke = peerProcess.nofPreferredNeighbour;
+						
 						while (numberToUnchoke > 0) {
+							if(interestedList.size()==0){
+								peerProcess.logger.println("Timer :Empty list");
+								break;
+								
+							}
+							
 							numberToUnchoke--;
-							int max = -100000, max_index = 0;
+							int max = Integer.MIN_VALUE, max_index = 0;
 							//No of download pieces is rate
 							for (int i = 0; i < downloadPieces.length; i++) {
 								if(!interestedList.contains(i)){
@@ -187,7 +194,7 @@ public class Connect extends Thread {
 								}
 							}
 							//remove the peer with max rate and unchoke 
-							downloadPieces[max_index] = -10000;
+							downloadPieces[max_index] = Integer.MIN_VALUE;
 							//SEND UNCHOKE
 							
 							synchronized(this){
@@ -208,34 +215,35 @@ public class Connect extends Thread {
 								}
 							}//synch
 						}//while
-
-						chokedNeighbors.clear();
-						chokedNeighbors.addAll(rankList);
-						chokedNeighbors=removeDuplicates(chokedNeighbors);
-						preferredNeighbors=removeDuplicates(preferredNeighbors);
-						peerProcess.logger.print("Timer: Choked neighbor list (peeridlist): "+chokedNeighbors.toString());
-
-						chokedNeighbors.remove((Object)peerProcess.myRank);
-						chokedNeighbors.removeAll(preferredNeighbors);
-
-
-						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
-						int n=10;
-						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour&&n>0){
-							//Remove preferred neighbors from peerld list
-							n--;
-							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
-							if(index>0){
-								selected_neighbor = chokedNeighbors.get(index);
-							}
-							if(chokedNeighbors.size()!=0&&selected_neighbor>0){
-								preferredNeighbors.add(selected_neighbor);
-								chokedNeighbors.remove((Object)selected_neighbor);
-							}else{
-
-							}
-							peerProcess.logger.print("Timer: populating remaining spaces: "+preferredNeighbors.toString());
-						}
+//
+//						chokedNeighbors.add(1024);
+//						chokedNeighbors.clear();
+//						chokedNeighbors.addAll(rankList);
+//						chokedNeighbors=removeDuplicates(chokedNeighbors);
+//						preferredNeighbors=removeDuplicates(preferredNeighbors);
+//						peerProcess.logger.print("Timer: Choked neighbor list (peeridlist): "+chokedNeighbors.toString());
+//
+//						chokedNeighbors.remove((Object)peerProcess.myRank);
+//						chokedNeighbors.removeAll(preferredNeighbors);
+//
+//
+//						peerProcess.logger.print("Timer: Choked neighbor list: "+chokedNeighbors.toString());
+//						int n=10;
+//						while(preferredNeighbors.size()<peerProcess.nofPreferredNeighbour&&n>0){
+//							//Remove preferred neighbors from peerld list
+//							n--;
+//							int index = chokedNeighbors.indexOf(new Random().nextInt(chokedNeighbors.size())),selected_neighbor=0;
+//							if(index>0){
+//								selected_neighbor = chokedNeighbors.get(index);
+//							}
+//							if(chokedNeighbors.size()!=0&&selected_neighbor>0){
+//								preferredNeighbors.add(selected_neighbor);
+//								chokedNeighbors.remove((Object)selected_neighbor);
+//							}else{
+//
+//							}
+//							peerProcess.logger.print("Timer: populating remaining spaces: "+preferredNeighbors.toString());
+//						}
 						synchronized(this){
 							peerProcess.logger.print("Timer: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
 						}
@@ -342,11 +350,12 @@ public class Connect extends Thread {
 
 				case 2:
 					//recvd interested
-					peerProcess.logger.println("Received interested message from "+hmRecvd.peerID);
+					peerProcess.logger.println("Case 2:Received interested message from "+hmRecvd.peerID);
 					//Update the interested list
 					interestedList.add(getRank(hmRecvd.peerID+"")-1);
+					peerProcess.logger.println("Interested List is "+interestedList.toString());
 					interestedList=removeDuplicates(interestedList);
-					
+					peerProcess.logger.println("Interested List without dups is "+interestedList.toString());
 					//send unchoke after selecting neighbour from preferred Neighbor
 
 					if((unchokedList.size()<peerProcess.nofPreferredNeighbour) && !unchokedList.contains(hmRecvd.peerID)) {
