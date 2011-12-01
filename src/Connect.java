@@ -656,6 +656,9 @@ public class Connect extends Thread {
 											peerProcess.logger.println("Requesting again to "+hmRecvd.peerID+" for chunk: "+chunkRequestedFor);
 											break;
 										}
+										else {
+											peerProcess.logger.println("Not Requesting because "+hmRecvd.peerID+" dooes not have  chunk: "+chunkRequestedFor);
+										}
 										dontHaveChunkList_temp2.remove(dontHaveChunkList_temp2.indexOf(chunkRequestedFor));
 									}
 								}
