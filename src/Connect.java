@@ -248,7 +248,7 @@ public class Connect extends Thread {
 							if(unchokedList.size()>0) {
 								
 								//send choke to unchoke list and clear
-								//Sending choke
+//								Sending choke
 								for(int i =0; i<consolidated_oos.length; i++){
 
 									if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)){
@@ -355,7 +355,7 @@ public class Connect extends Thread {
 				}
 			}
 
-			chokeTimer.scheduleAtFixedRate(new unchoker(), 1, peerProcess.unchokingInterval*100);
+			chokeTimer.scheduleAtFixedRate(new unchoker(), 1, peerProcess.unchokingInterval*1000);
 
 
 			//Update its list about itself
@@ -407,6 +407,7 @@ public class Connect extends Thread {
 
 				//Recving message
 				ActualMessage messageRcvd = (ActualMessage)ois.readObject();
+				peerProcess.logger.println("Received message from "+hmRecvd.peerID+" type "+messageRcvd.messageType);
 				switch(messageRcvd.messageType) {
 				case 0:
 					//choke
