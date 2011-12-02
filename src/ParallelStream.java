@@ -11,18 +11,20 @@ class ParallelStream extends Thread {
 	private ObjectInputStream ois;
 	private ObjectOutputStream oos;
 	BlockingQueue<Object> q = new LinkedBlockingQueue<Object>();
-//	static private List<Thread> threads = new ArrayList<Thread>();
+	static private List<Thread> threads = new ArrayList<Thread>();
 	boolean isInput = false;
 	boolean isClose =false;
 
 	public ParallelStream(ObjectInputStream o){
 		ois=o;	
 		isInput = true;
+		threads.add(this);
 		this.start();
 	}
 
 	public ParallelStream(ObjectOutputStream o){
 		oos=o;
+		threads.add(this);
 		this.start();
 	}
 
@@ -88,13 +90,16 @@ class ParallelStream extends Thread {
 		return null;
 	}
 
-	public void close() throws IOException{
+	public void close() throws IOException, InterruptedException{
 		if(isInput){
 			isClose = true;
 			ois.close();
 		}else{
 			ois.close();
 		}
-
+		for (Thread t:threads){
+			t.join();
+		}
+		
 	}
 }
