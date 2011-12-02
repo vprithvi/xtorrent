@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 
@@ -24,6 +25,7 @@ public class peerProcess extends Thread {
 	static int nofPieces;
 	static int nofPeers;
 	static File theFile;
+	static private List<Thread> threads = new ArrayList<Thread>();
 
 	private ServerSocket server;
 
@@ -93,6 +95,7 @@ public class peerProcess extends Thread {
 		getPeerInfo();
 		getCommonConfig();
 		server = new ServerSocket(myPort);
+		threads.add(this);
 		this.start();
 	}
 
@@ -121,7 +124,7 @@ public class peerProcess extends Thread {
 				}
 			}
 		}catch(Exception e){
-			peerProcess.logger.println(e.getMessage());
+			peerProcess.logger.print(e);
 
 		}
 
@@ -133,25 +136,9 @@ public class peerProcess extends Thread {
 	public static void main(String[] args)  throws Exception {
 
 		new peerProcess(args[0]);
-
-
-		/* test to print parameters
-		 * 
-		for(int x=0;x<p.myPeerInfo.size();x++) {
-			RemotePeerInfo peer = (RemotePeerInfo)p.myPeerInfo.elementAt(x);
-			logger.println(peer.peerId+" "+peer.peerAddress+" "+peer.peerPort);
-
+		
+		for (Thread t:threads){
+			t.join();
 		}
-		logger.println( p.myID);
-		logger.println( p.haveFile);
-		logger.println (p.nofPreferredNeighbour);
-		logger.println (p.unchokingInterval);
-		logger.println (p.opUnchokingInterval);
-		logger.println (p.fileName);
-		logger.println (p.fileSize);
-		logger.println (p.pieceSize);
-		logger.println (p.nofPieces);
-		 */
-		//		new peerProcess();
 	}
 }

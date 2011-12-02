@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -9,7 +11,7 @@ class ParallelStream extends Thread {
 	private ObjectInputStream ois;
 	private ObjectOutputStream oos;
 	BlockingQueue<Object> q = new LinkedBlockingQueue<Object>();
-
+//	static private List<Thread> threads = new ArrayList<Thread>();
 	boolean isInput = false;
 	boolean isClose =false;
 
