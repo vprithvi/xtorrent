@@ -38,6 +38,7 @@ public class Connect extends Thread {
 	public int chunkNumber;
 
 	public static boolean complete = false;
+	public static int byeCount =0;
 	public boolean haveChunk = false;
 	public static boolean choked = true;
 	int hisRank;
@@ -371,6 +372,7 @@ public class Connect extends Thread {
 				//Recving message
 				ActualMessage messageRcvd = (ActualMessage)ois.readObject();
 				peerProcess.logger.println("Received message from "+hmRecvd.peerID+" type "+messageRcvd.messageType);
+				completeAndExit:
 				switch(messageRcvd.messageType) {
 				case 0:
 					//choke
@@ -607,6 +609,10 @@ public class Connect extends Thread {
 							if(isComplete()) {
 								peerProcess.logger.print("I completed. Finishing .....................");
 								broadcastBye();
+								complete = true;
+								oos.close();
+								ois.close();
+								return;
 							}
 						}
 
@@ -643,11 +649,16 @@ public class Connect extends Thread {
 				case 8:
 					peerProcess.logger.println("Received a BYE message from "+hmRecvd.peerID);
 					peerProcess.logger.println("Shutting down this thread ");
+					byeCount++;
 					
+					if((peerProcess.haveFile==1)&&(byeCount>=(peerProcess.nofPeers-1))){
+						peerProcess.logger.println("I was the owner of the file. Everybody downloaded. So I am exiting as well.");
+					}
 					//exit switch and while case
 					complete = true;
 					oos.close();
 					ois.close();
+					return;
 
 				}//end switch case
 
