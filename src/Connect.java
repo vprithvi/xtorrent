@@ -40,7 +40,7 @@ public class Connect extends Thread {
 
 	public int chunkNumber;
 
-	public static boolean complete = false;
+	static boolean complete = false;
 	public static int byeCount =0;
 	public boolean haveChunk = false;
 	public static boolean choked = true;
@@ -370,7 +370,9 @@ public class Connect extends Thread {
 				//				oos.writeObject(testChunk);
 
 
-
+				if (complete) {
+					return;
+				}
 				while(!complete) {
 
 					//Recving message
@@ -676,9 +678,9 @@ public class Connect extends Thread {
 						
 						//exit switch and while case
 						complete = true;
-						oos.close();
-						ois.close();
-						return;
+//						oos.close();
+//						ois.close();
+						break;
 
 					}//end switch case
 
@@ -704,7 +706,15 @@ public class Connect extends Thread {
 				try {
 					oos.close();
 					ois.close();
+					
+					for(Thread t: threads){
+						t.join();
+					}
+					
 				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
