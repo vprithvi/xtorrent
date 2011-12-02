@@ -215,6 +215,12 @@ public class Connect extends Thread {
 
 					@Override
 					synchronized public void run() {
+						peerProcess.logger.print("The value of complete is :" + complete);
+						if(complete){
+							this.cancel();
+							
+						}
+						
 						try {
 							if(interestedList.size()==0){
 								peerProcess.logger.println("Timer :Empty list");
@@ -306,8 +312,16 @@ public class Connect extends Thread {
 
 					@Override
 					public void run() {
-
-						for(int i = new Random().nextInt(consolidated_oos.length); i<consolidated_oos.length; i++){
+						if(complete){
+							this.cancel();
+						}
+						peerIDList=removeDuplicates(peerIDList);
+						peerIDList.remove((Object)peerProcess.myID);
+						int temp_index =new Random().nextInt(peerIDList.size());
+						peerProcess.logger.print("Timer temp index is "+ temp_index+"peerlist"+ peerIDList.toString());
+						if(temp_index>=0){
+						
+						for(int i = getRank(peerIDList.get(temp_index)); i<peerProcess.nofPeers; i = getRank(peerIDList.get(temp_index))){
 							if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)&&i>=0){
 								peerProcess.logger.print("Timer: Sending optimistic unchoke to "+(i+1));
 								consolidated_oos[i].writeObject(new ActualMessage("unchoke"));
@@ -318,13 +332,14 @@ public class Connect extends Thread {
 								break;
 							}
 						}
+						}
 
 
 
 					}
 
 				}
-				optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval);
+				optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval*1000);
 
 				//Update its list about itself
 				//			peerProcess.logger.print("My Rank is " +peerProcess.myRank);
@@ -371,10 +386,23 @@ public class Connect extends Thread {
 
 
 				if (complete) {
+					chokeTimer.cancel();
+					chokeTimer.purge();
+					optChokeTimer.cancel();	
+					optChokeTimer.purge();
 					return;
 				}
+
 				while(!complete) {
 
+					if (complete) {
+						chokeTimer.cancel();
+						chokeTimer.purge();
+						optChokeTimer.cancel();	
+						optChokeTimer.purge();
+						return;
+					}
+					
 					//Recving message
 					ActualMessage messageRcvd = (ActualMessage)ois.readObject();
 					peerProcess.logger.println("Received message from "+hmRecvd.peerID+" type "+messageRcvd.messageType);
@@ -612,7 +640,7 @@ public class Connect extends Thread {
 
 							//put a logic to see if all pieces are complete, if so broadcast bye and die
 							if(dontHaveChunkList.isEmpty()&&isComplete()) {
-							
+							        peerIDList.remove((Object) hmRecvd.peerID);
 									mergeChunks();
 									peerProcess.logger.print("I completed. Finishing .....................");
 									sleep(10000);
@@ -662,6 +690,7 @@ public class Connect extends Thread {
 						
 						if((peerProcess.haveFile==1)&&(byeCount>=(peerProcess.nofPeers-1))){
 							peerProcess.logger.println("I was the owner of the file. Everybody downloaded. So I am exiting as well.");
+							complete=true;
 						}
 
 						//make his matrix row zero too stop requesting him.
@@ -670,17 +699,15 @@ public class Connect extends Thread {
 						}
 						
 						//removing him from unchoke list
+						peerIDList.remove((Object) hmRecvd.peerID);
 						unchokedList.remove((Object)(hisRank-1));
 						
 						interestedList.remove((Object)(hisRank-1));
 						
 						preferredNeighbors.remove((Object)(hisRank-1));
 						
-						//exit switch and while case
-						complete = true;
-//						oos.close();
-//						ois.close();
-						break;
+						return;
+//						break;
 
 					}//end switch case
 
@@ -704,6 +731,9 @@ public class Connect extends Thread {
 				e.printStackTrace();
 			}finally{
 				try {
+					
+
+					
 					oos.close();
 					ois.close();
 					
@@ -837,10 +867,8 @@ public class Connect extends Thread {
 	
 	void broadcastBye(){
 		
-		chokeTimer.cancel();
-		optChokeTimer.cancel();
-		chokeTimer.purge();
-		optChokeTimer.purge();
+
+		
 		peerProcess.logger.print("Cancelled timer ");
 		for(int i =0; i<consolidated_oos.length; i++){
 
