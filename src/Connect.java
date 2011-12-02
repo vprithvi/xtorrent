@@ -339,7 +339,7 @@ public class Connect extends Thread {
 					}
 
 				}
-				optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval*1000);
+				optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval*400);
 
 				//Update its list about itself
 				//			peerProcess.logger.print("My Rank is " +peerProcess.myRank);
