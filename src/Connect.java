@@ -648,6 +648,7 @@ public class Connect extends Thread {
 
 		}catch(Exception e) {
 			peerProcess.logger.print(e);
+			e.printStackTrace();
 
 		}       
 	}
@@ -690,7 +691,8 @@ public class Connect extends Thread {
 		String partName = chunkNumber + ".part";
 		File outputFile = new File(partName);
 		try {
-			FileOutputStream fos = new FileOutputStream(peerProcess.myID+"/"+outputFile);
+			new File(fileDirectory).mkdir();
+			FileOutputStream fos = new FileOutputStream(fileDirectory+outputFile);
 			fos.write(inputChunk);
 			fos.flush();
 			fos.close();
