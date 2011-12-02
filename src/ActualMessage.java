@@ -23,8 +23,11 @@ public class ActualMessage implements Serializable {
 			else if(mType=="interested") {
 				messageType = 2;
 			}
-			else { //not interested
+			else if(mType=="notinterested"){ 
 				messageType = 3;
+			}
+			else {
+				messageType=8;
 			}
 			
 			length = 0;
