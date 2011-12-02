@@ -25,6 +25,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import javax.print.CancelablePrintJob;
+
 
 
 public class Connect extends Thread {
@@ -296,7 +298,7 @@ public class Connect extends Thread {
 
 				chokeTimer.scheduleAtFixedRate(new unchoker(), 1, peerProcess.unchokingInterval*1000);
 
-
+				
 				//Optimistic unchoking
 
 
@@ -607,21 +609,23 @@ public class Connect extends Thread {
 							haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
 
 							//put a logic to see if all pieces are complete, if so broadcast bye and die
-							if(dontHaveChunkList.isEmpty()) {
-								if(isComplete()) {
+							if(dontHaveChunkList.isEmpty()&&isComplete()) {
+							
 									mergeChunks();
 									peerProcess.logger.print("I completed. Finishing .....................");
+									sleep(10000);
 									broadcastBye();
 									complete = true;
-									oos.close();
-									ois.close();
-									return;
-								}
+
+
+									break;
+								
+								
 							}
 
 							//check if unchoked and then request for next piece
 
-							if(!choked) {
+							if(!choked&&!complete) {
 								//selecting randomly a chunk number from the dont have list only if any chunk is missing.
 								ArrayList<Integer> dontHaveChunkList_temp2= new ArrayList<Integer>(dontHaveChunkList);
 								if(dontHaveChunkList_temp2.size()>0) {
@@ -696,6 +700,14 @@ public class Connect extends Thread {
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e);
 				e.printStackTrace();
+			}finally{
+				try {
+					oos.close();
+					ois.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 
@@ -779,7 +791,7 @@ public class Connect extends Thread {
 				peerProcess.logger.print("Merging piece :"+partNameHere+" /"+peerProcess.nofPieces);
 
 
-				File partFile = new File(partNameHere);
+				File partFile = new File(fileDirectory+partNameHere);
 				FileInputStream pffis = new FileInputStream(partFile);
 				peerProcess.logger.println("Length of partfile "+partFile.length());
 				byte[] fb = new byte[(int)partFile.length()];
@@ -814,6 +826,12 @@ public class Connect extends Thread {
 	}
 	
 	void broadcastBye(){
+		
+		chokeTimer.cancel();
+		optChokeTimer.cancel();
+		chokeTimer.purge();
+		optChokeTimer.purge();
+		peerProcess.logger.print("Cancelled timer ");
 		for(int i =0; i<consolidated_oos.length; i++){
 
 			if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)){
