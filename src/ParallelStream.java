@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.BlockingQueue;
@@ -10,6 +11,7 @@ class ParallelStream extends Thread {
 	BlockingQueue<Object> q = new LinkedBlockingQueue<Object>();
 
 	boolean isInput = false;
+	boolean isClose =false;
 
 	public ParallelStream(ObjectInputStream o){
 		ois=o;	
@@ -25,14 +27,17 @@ class ParallelStream extends Thread {
 
 	public void run(){
 		while(true){
+			if(isClose){
+				return;
+			}
 			//		synchronized(this){	
 			try{
 				if(isInput){
 					synchronized(ois){
-//						q.add(ois.readObject());
+						//						q.add(ois.readObject());
 						q.put(ois.readObject());
-					
-//						peerProcess.logger.println("\nRead Object from ois and inserted, q(with object is now)"+q.toString()+"\n");//+obj.toString());
+
+						//						peerProcess.logger.println("\nRead Object from ois and inserted, q(with object is now)"+q.toString()+"\n");//+obj.toString());
 					}
 				}else{
 					synchronized (oos) {
@@ -41,7 +46,7 @@ class ParallelStream extends Thread {
 						oos.flush();
 						oos.writeObject(q.take());
 						oos.flush();
-//						peerProcess.logger.println("\nWrote Object to oos and removed from q "+ q.toString()+"\n");
+						//						peerProcess.logger.println("\nWrote Object to oos and removed from q "+ q.toString()+"\n");
 					}
 				}
 			}catch(Exception e){
@@ -52,11 +57,11 @@ class ParallelStream extends Thread {
 	}
 
 	public boolean writeObject(Object obj){
-		
+
 		if (!isInput) {
 			try {
 				q.put(obj);
-//				 peerProcess.logger.println("\nwriteObject: inserted into q and write q is "+q.toString()+"\n");
+				//				 peerProcess.logger.println("\nwriteObject: inserted into q and write q is "+q.toString()+"\n");
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e.toString());
 				return false;
@@ -65,24 +70,34 @@ class ParallelStream extends Thread {
 		} else {
 			assert (!isInput);
 			return false;
-			
+
 		}
 	}
 
 	public Object readObject(){
 		if(isInput){
 			try {
-//				peerProcess.logger.println("\nreadObject invoked with q (waiting to pop):"+q.toString()+"\n");
+				//				peerProcess.logger.println("\nreadObject invoked with q (waiting to pop):"+q.toString()+"\n");
 				Object obj=q.take();
-//				peerProcess.logger.println("\nreadObject:popped "+obj.toString()+" from q :"+q.toString()+"\n");
+				//				peerProcess.logger.println("\nreadObject:popped "+obj.toString()+" from q :"+q.toString()+"\n");
 				return obj;
 			} catch (InterruptedException e) {
 				peerProcess.logger.print(e.toString());
-				
+
 				return null;
 			}
 		}
 		assert (isInput);
 		return null;
+	}
+
+	public void close() throws IOException{
+		if(isInput){
+			isClose = true;
+			ois.close();
+		}else{
+			ois.close();
+		}
+		
 	}
 }
