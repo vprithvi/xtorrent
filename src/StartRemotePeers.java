@@ -60,8 +60,8 @@ public class StartRemotePeers {
 				
 				// *********************** IMPORTANT *************************** //
 				// If your program is JAVA, use this line.
-				System.out.println("ssh " + pInfo.peerAddress + " cd " + path + "; java peerProcess " + pInfo.peerId+";"+" >stdout"+pInfo.peerAddress+".log"+" 2>stderr"+pInfo.peerAddress+".log");
-				Runtime.getRuntime().exec("ssh " + pInfo.peerAddress + " cd " + path + "; java peerProcess " + pInfo.peerId+";"+" >stdout"+pInfo.peerAddress+".log"+" 2>stderr"+pInfo.peerAddress+".log");
+//				System.out.println("ssh " + pInfo.peerAddress + " cd " + path + "; java peerProcess " + pInfo.peerId+";"+" >stdout"+pInfo.peerAddress+".log"+"2>stderr"+pInfo.peerAddress+".log");
+				Runtime.getRuntime().exec("ssh " + pInfo.peerAddress + "' cd " + path + "; java peerProcess " + pInfo.peerId+"'"+"2>>stderr"+pInfo.peerAddress+"_"+".log");
 							}		
 			System.out.println("Starting all remote peers has done." );
 
