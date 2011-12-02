@@ -37,7 +37,8 @@ public class Connect extends Thread {
 
 	public int chunkNumber;
 
-	public boolean complete = false;
+	public static boolean complete = false;
+	public static int byeCount =0;
 	public boolean haveChunk = false;
 	public static boolean choked = true;
 	int hisRank;
@@ -53,7 +54,7 @@ public class Connect extends Thread {
 	static List<Integer> chokedNeighbors = Collections.synchronizedList(new ArrayList<Integer>());
 	static List<Integer> interestedList = Collections.synchronizedList(new ArrayList<Integer>());
 	static List<Integer> optimisticUnchokeList = Collections.synchronizedList(new ArrayList<Integer>());
-//	List<Integer> a = Collections.synchronizedList(new ArrayList<Integer>());
+	//	List<Integer> a = Collections.synchronizedList(new ArrayList<Integer>());
 	static int[] downloadPieces= new int [peerProcess.nofPeers];
 	String fileDirectory=peerProcess.myID+"/";
 	String _host = null;
@@ -80,15 +81,15 @@ public class Connect extends Thread {
 	}
 
 	synchronized public ArrayList<Integer> removeDuplicates(ArrayList<Integer> a){
-//		synchronized (this) {
-			//		ArrayList al = new ArrayList();
-			// add elements to al, including duplicates
-			HashSet<Integer> hs = new HashSet<Integer>();
-			hs.addAll(a);
-			a.clear();
-			a.addAll(hs);
-			return a;
-//		}
+		//		synchronized (this) {
+		//		ArrayList al = new ArrayList();
+		// add elements to al, including duplicates
+		HashSet<Integer> hs = new HashSet<Integer>();
+		hs.addAll(a);
+		a.clear();
+		a.addAll(hs);
+		return a;
+		//		}
 	}
 
 	synchronized public List<Integer> removeDuplicates(List<Integer> a){
@@ -102,7 +103,7 @@ public class Connect extends Thread {
 			return a;
 		}
 	}
-	
+
 	public void generatePeerIDList() {
 		String st;
 		try {
@@ -159,7 +160,7 @@ public class Connect extends Thread {
 		}
 		return rank;
 	}
-	
+
 	public int getRank(int peerId) {
 		int rank=0;
 		String st;
@@ -228,9 +229,9 @@ public class Connect extends Thread {
 
 							}
 							//check if interested list is empty, if so leave it until someone sends interested
-					
+
 							numberToUnchoke--;
-							
+
 							//get the max from the downloadpieces for a peer who is in interested list
 							int max=0, maxIndex=0;
 							for(int i = 0; i < interestedList.size(); i++) {
@@ -238,18 +239,18 @@ public class Connect extends Thread {
 									max = downloadPieces[interestedList.get(i)];
 									maxIndex =i;
 								}
-								
+
 							}
 							//once peer is selected from list, remove him and add him to the preferredlist
 							preferredNeighbors.add(interestedList.get(maxIndex));
 							interestedList.remove(maxIndex);
-							
-							
+
+
 							//Replace unchokelist with prefne
 							if(unchokedList.size()>0) {
-								
+
 								//send choke to unchoke list and clear
-//								Sending choke
+								//								Sending choke
 								for(int i =0; i<consolidated_oos.length; i++){
 
 									if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)){
@@ -257,10 +258,10 @@ public class Connect extends Thread {
 										consolidated_oos[i].writeObject(new ActualMessage("choke"));
 									}
 								}
-								
+
 								unchokedList.clear();
 								unchokedList.addAll(preferredNeighbors);
-								
+
 								//Sending unchoke
 								for(int i =0; i<consolidated_oos.length; i++){
 
@@ -269,12 +270,12 @@ public class Connect extends Thread {
 										consolidated_oos[i].writeObject(new ActualMessage("unchoke"));
 									}
 								}
-								
-								
+
+
 							}
 
-							
-					}
+
+						}
 						synchronized(this){
 							peerProcess.logger.print("Timer: Populated the prefferedNeighbors list: "+preferredNeighbors.toString());
 						}
@@ -286,7 +287,6 @@ public class Connect extends Thread {
 
 
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
 						peerProcess.logger.print(e);
 					}
 				}
@@ -294,15 +294,15 @@ public class Connect extends Thread {
 
 			chokeTimer.scheduleAtFixedRate(new unchoker(), 1, peerProcess.unchokingInterval*1000);
 
-			
+
 			//Optimistic unchoking
-			
-			
+
+
 			class optimisticUnchoker extends TimerTask{
 
 				@Override
 				public void run() {
-					
+
 					for(int i = new Random().nextInt(consolidated_oos.length); i<consolidated_oos.length; i++){
 						if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)&&unchokedList.contains(i)&&i>=0){
 							peerProcess.logger.print("Timer: Sending optimistic unchoke to "+(i+1));
@@ -314,11 +314,11 @@ public class Connect extends Thread {
 							break;
 						}
 					}
-					
-					
-					
+
+
+
 				}
-				
+
 			}
 			optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval);
 
@@ -372,6 +372,7 @@ public class Connect extends Thread {
 				//Recving message
 				ActualMessage messageRcvd = (ActualMessage)ois.readObject();
 				peerProcess.logger.println("Received message from "+hmRecvd.peerID+" type "+messageRcvd.messageType);
+				completeAndExit:
 				switch(messageRcvd.messageType) {
 				case 0:
 					//choke
@@ -414,7 +415,7 @@ public class Connect extends Thread {
 						peerProcess.logger.println("Case 2:Received interested message from "+hmRecvd.peerID);
 						//Update the interested list
 						interestedList.add(getRank(hmRecvd.peerID+"")-1);
-//						peerProcess.logger.println("Interested List is "+interestedList.toString());
+						//						peerProcess.logger.println("Interested List is "+interestedList.toString());
 						interestedList=removeDuplicates(interestedList);
 						peerProcess.logger.println("Interested List without dups is "+interestedList.toString());
 						//send unchoke after selecting neighbour from preferred Neighbor
@@ -603,7 +604,17 @@ public class Connect extends Thread {
 						broadcastHave(chunkNumber);
 						haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
 
-						//put a logic to see if all pieces are complete
+						//put a logic to see if all pieces are complete, if so broadcast bye and die
+						if(dontHaveChunkList.isEmpty()) {
+							if(isComplete()) {
+								peerProcess.logger.print("I completed. Finishing .....................");
+								broadcastBye();
+								complete = true;
+								oos.close();
+								ois.close();
+								return;
+							}
+						}
 
 						//check if unchoked and then request for next piece
 
@@ -633,7 +644,22 @@ public class Connect extends Thread {
 
 
 						break;
+
 					}
+				case 8:
+					peerProcess.logger.println("Received a BYE message from "+hmRecvd.peerID);
+					peerProcess.logger.println("Shutting down this thread ");
+					byeCount++;
+					
+					if((peerProcess.haveFile==1)&&(byeCount>=(peerProcess.nofPeers-1))){
+						peerProcess.logger.println("I was the owner of the file. Everybody downloaded. So I am exiting as well.");
+					}
+					//exit switch and while case
+					complete = true;
+					oos.close();
+					ois.close();
+					return;
+
 				}//end switch case
 
 
@@ -651,6 +677,18 @@ public class Connect extends Thread {
 			e.printStackTrace();
 
 		}       
+	}
+
+	public boolean isComplete() {
+
+		for(int i=0;i<peerProcess.nofPieces;i++) {
+			if(listOfPeersandChunks[peerProcess.myRank-1][i]!=1) {
+				return false;
+			}
+
+		}
+		return true;
+
 	}
 
 	public byte[] makeChunk(int chunkNo) {
@@ -747,6 +785,17 @@ public class Connect extends Thread {
 			}
 		}
 		peerProcess.logger.print("Broadcasted the have message");
+	}
+	
+	void broadcastBye(){
+		for(int i =0; i<consolidated_oos.length; i++){
+
+			if(null!=consolidated_oos[i]&&i!=(peerProcess.myRank-1)){
+				peerProcess.logger.print("Sending bye message to "+(i+1));
+				consolidated_oos[i].writeObject(new ActualMessage("bye"));
+			}
+		}
+		peerProcess.logger.print("Broadcasted the Bye message");
 	}
 
 }
