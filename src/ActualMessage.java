@@ -1,6 +1,5 @@
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.BitSet;
 
 
@@ -59,7 +58,7 @@ public class ActualMessage implements Serializable {
 		 byte[] abcd= toByteArray(bitfield).clone();
 		 messagePayload = abcd.clone();
 		length = messagePayload.length;
-		peerProcess.logger.print("Bitfield set to " + bitfield.toString() + "with length" + bitfield.length()+"Converted to byte array \n"+messagePayload.length);
+		
 		
 	}
 
@@ -71,11 +70,10 @@ public class ActualMessage implements Serializable {
 		assert (chunkid_b.length == 4);
 		messageType = 7;
 		messagePayload = new byte[myChunk.length+chunkid_b.length];
-		peerProcess.logger.print("\nparameter length "+myChunk.length+" chunkid_b" +chunkid_b.length+" messagepayload length "+messagePayload.length);
+		
 		System.arraycopy (chunkid_b,0,messagePayload,0, chunkid_b.length);
 		System.arraycopy (myChunk,0,messagePayload,chunkid_b.length, myChunk.length);
 		length = messagePayload.length;
-		//		peerProcess.logger.println("Actual message payload content is \n\n\n"+new String(messagePayload)+"\n\n");
 	}
 
 
@@ -90,14 +88,6 @@ public class ActualMessage implements Serializable {
 	  System.arraycopy(messagePayload, 4, payload, 0, messagePayload.length-4);
 	  return payload;
 	}
-
-	/*	ActualMessage(int l,Byte mT, Byte mP) {
-		length = l;
-		messageType = new Byte(mT); 
-		messagePayload = new Byte(mP); // Single chunk in byte
-		bitfield = new BitSet(l);
-		bitfield.set(1,true);
-	}*/
 
 	public BitSet toBitSet(byte[] bytes) {
 		BitSet bits = new BitSet();
@@ -118,55 +108,4 @@ public class ActualMessage implements Serializable {
 		}
 		return bytes;
 	}
-
-	/*public static void main(String arg[])
-	{
-		ActualMessage a = new ActualMessage(306);
-		System.out.println(a.messagePayload.length);
-		BitSet myRecvBits = new BitSet(306);
-		myRecvBits = a.toBitSet(a.messagePayload);
-						if(!myRecvBits.isEmpty())
-				{
-					//hisRank = getRank(Integer.toString(hmRecvd.peerID));
-					for(int x=myRecvBits.nextSetBit(0); x>=0; x=myRecvBits.nextSetBit(x+1)) {
-						System.out.println(" x "+x);	
-						//listOfPeersandChunks[hisRank-1][x] =1;
-					}
-				}
-		
-						//System.out.println(a.messagePayload);
-		
-		BitSet mb = new BitSet(10);
-		mb.set(2);
-		System.out.println(mb.get(2));
-		System.out.println(mb.get(9));
-		byte[] mby = new byte[mb.length()/8+1];
-		mby = toByteArray(mb);* 
-		for (int i =0;i<mby.length;i++){
-		System.out.println(mby[i]);}
-		
-		BitSet mb2 = new BitSet();
-		mb2 = toBitSet(mby);
-		System.out.println(mb2.get(2));
-		System.out.println(mb2.get(9));
-		//System.out.println(a.messageType);
-		//System.out.println(a.bitfield.toString());
-		//System.out.println(a.bitfield.get(0));
-		BitSet myRecvBits = new BitSet(18);
-		myRecvBits = a.toBitSet(a.messagePayload); 					
-		int maxIndex = 306;
-		
-		int index=0, firstBit=-1;
-		while(index<maxIndex && index!=firstBit) {
-			int x = myRecvBits.nextSetBit(index);
-			index=x+1;
-			firstBit=x;
-			System.out.println(x);
-		}
-		
-		System.out.println("Size of bitfield "+myRecvBits.size()+"\n"+" content "+myRecvBits.toString());
-		
-
-
-	}*/
 }

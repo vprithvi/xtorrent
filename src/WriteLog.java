@@ -44,13 +44,6 @@ class WriteLog{
 	}
 
 	public void println(String msg){
-		//		out.flush();
-		//		out.println(TimeGen.now()+":"+msg);
-		//		out.flush();
-		//		out.flush();
-		//		out.print(msg);
-		//		out.flush();
-
 		print(msg);
 	}
 	public void close(){
