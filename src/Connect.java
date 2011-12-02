@@ -553,7 +553,7 @@ public class Connect extends Thread {
 						int reqIndex = messageRcvd.getChunkid();
 						peerProcess.logger.print(hmRecvd.peerID+" requested for chunk "+reqIndex);
 						//if unchoked send piece
-						if(optimisticUnchokeList.contains(getRank(hmRecvd.peerID)-1)||unchokedList.contains((getRank(hmRecvd.peerID)-1))) {
+						if(optimisticUnchokeList.contains(getRank(hmRecvd.peerID)-1)||true||unchokedList.contains((getRank(hmRecvd.peerID)-1))) {
 							if(peerProcess.haveFile==1) {
 								oos.writeObject(new ActualMessage(makeChunk(reqIndex),reqIndex));
 								peerProcess.logger.print("Making and sending "+hmRecvd.peerID+" the chunk "+reqIndex);
