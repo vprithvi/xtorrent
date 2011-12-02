@@ -33,7 +33,7 @@ public class Connect extends Thread {
 	private ParallelStream ois = null;
 	private static ParallelStream consolidated_oos[] = new ParallelStream[peerProcess.nofPeers];
 	//	private static int consolidated_index=0;
-
+	static private List<Thread> threads = new ArrayList<Thread>();
 
 	public int chunkNumber;
 
@@ -68,14 +68,14 @@ public class Connect extends Thread {
 	public Connect(ServerSocket serverSocket) {
 		server = serverSocket;
 		isServer = true;
-
+		threads.add(this);
 		this.start();
 	}
 
 	public Connect(String host, int port){
 		_host = host;
 		_port = port;
-
+		threads.add(this);
 		this.start();
 	}
 
