@@ -374,7 +374,7 @@ public class Connect extends Thread {
 
 			}
 
-			optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval*400);
+			optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval);
 
 
 			//Update its list about itself

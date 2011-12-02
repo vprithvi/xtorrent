@@ -21,10 +21,6 @@ class WriteLog{
 
 	public void print(String msg){
 		synchronized(this){
-			if(msg.contains("onnect")){
-				msg = msg.toUpperCase();
-				msg = ""+msg+"";
-			}
 			out.flush();
 			out.println(TimeGen.now()+" "+peerProcess.myID+"::"+msg);
 			out.flush();
