@@ -604,6 +604,11 @@ public class Connect extends Thread {
 						haveChunk = true;  //initiate the server sequence even if it has one chunk and only if not already a server
 
 						//put a logic to see if all pieces are complete
+						if(dontHaveChunkList.isEmpty()) {
+							if(isComplete()) {
+								peerProcess.logger.print("I completed. Finishing .....................");
+							}
+						}
 
 						//check if unchoked and then request for next piece
 
@@ -653,6 +658,18 @@ public class Connect extends Thread {
 		}       
 	}
 
+	public boolean isComplete() {
+		
+		for(int i=0;i<peerProcess.nofPieces;i++) {
+			if(listOfPeersandChunks[peerProcess.myRank-1][i]!=1) {
+				return false;
+			}
+			
+		}
+		return true;
+		
+	}
+	
 	public byte[] makeChunk(int chunkNo) {
 		byte[] outChunks = null;
 		if(peerProcess.haveFile ==1) {
