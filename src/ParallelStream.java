@@ -11,6 +11,7 @@ class ParallelStream extends Thread {
 	BlockingQueue<Object> q = new LinkedBlockingQueue<Object>();
 
 	boolean isInput = false;
+	boolean isClose =false;
 
 	public ParallelStream(ObjectInputStream o){
 		ois=o;	
@@ -26,6 +27,9 @@ class ParallelStream extends Thread {
 
 	public void run(){
 		while(true){
+			if(isClose){
+				return;
+			}
 			//		synchronized(this){	
 			try{
 				if(isInput){
@@ -89,9 +93,11 @@ class ParallelStream extends Thread {
 
 	public void close() throws IOException{
 		if(isInput){
+			isClose = true;
 			ois.close();
 		}else{
 			ois.close();
 		}
+		
 	}
 }
