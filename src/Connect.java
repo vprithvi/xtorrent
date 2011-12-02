@@ -369,13 +369,13 @@ public class Connect extends Thread {
 							peerProcess.logger.print(" Peer "+ peerProcess.myID+" has the optimistically unchoked neighbor "+ optimisticUnchokeList.get(0));
 						}
 					}
-
-
-
 				}
 
+
 			}
-			optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval*1000);
+
+			optChokeTimer.scheduleAtFixedRate(new optimisticUnchoker(), 1, peerProcess.opUnchokingInterval*400);
+
 
 			//Update its list about itself
 			//			peerProcess.logger.print("My Rank is " +peerProcess.myRank);
